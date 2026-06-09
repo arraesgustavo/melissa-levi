@@ -1,0 +1,35 @@
+name: Continuous Integration & Deployment - Backend
+
+on:
+  push:
+    branches: [ main ]
+    paths: ['backend/**']
+
+jobs:
+  deploy-to-production:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Trigger Render Webhook Deploy
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+    - name: Notify Telegram - Deploy Started
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: "🚀 Backend deployment started (commit: ${{ github.sha }})"
+      if: always()
+
+    - name: Notify Telegram - Deploy Result
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          🚀 DEPLOY REPORT - Backend
+          Status: ${{ job.status }}
+          Commit: ${{ github.sha }}
+      if: always()

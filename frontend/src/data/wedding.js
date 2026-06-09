@@ -1,0 +1,23 @@
+export const wedding = {
+  bride: 'Melissa',
+  groom: 'Levi',
+  couple: 'Melissa & Levi',
+  dateShort: '07.XX.2027',
+  dateLong: 'Sábado, XX de Julho de 2027',
+  rsvpBy: '1 de Maio de 2027',
+  ceremony: 'Cerimônia · 16h',
+  reception: 'Recepção · 18h — 23h',
+  venue: 'A ser definido',
+  address1: 'São José dos Campos',
+  address2: 'São Paulo, Brasil',
+  phone: 'A confirmar',
+  email: 'contato@melissaelevi.com.br',
+  registryUrl: 'https://www.amazon.com.br',
+  img: {
+    hero: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=2000&q=80&auto=format&fit=crop',
+    venue: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1400&q=80&auto=format&fit=crop',
+    bride: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1100&q=80&auto=format&fit=crop',
+    groom: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1100&q=80&auto=format&fit=crop',
+    cta: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=2000&q=80&auto=format&fit=crop',
+  },
+};
