@@ -59,6 +59,7 @@ jobs:
         message: "🚀 Backend deployment started (commit: ${{ github.sha }})"
 
     - name: Trigger Render Webhook Deploy
+      shell: bash
       run: |
         render_hook_url="$(printf '%s' '${{ secrets.RENDER_DEPLOY_HOOK_URL }}' | tr -d '\r\n')"
 
@@ -67,8 +68,8 @@ jobs:
           exit 1
         fi
 
-        if [[ ! "$render_hook_url" =~ ^https?:// ]]; then
-          echo "RENDER_DEPLOY_HOOK_URL must start with http:// or https://."
+        if [[ ! "$render_hook_url" =~ ^https:// ]]; then
+          echo "RENDER_DEPLOY_HOOK_URL must start with https://."
           exit 1
         fi
 
