@@ -39,8 +39,8 @@ async def error_telemetry_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as error:
         stack_trace = traceback.format_exc()
-        alert_body = f"🚨 ERRO 500\nRota: {request.url.path}\nErro: {str(error)}\n\nStack:\n{stack_trace[:500]}"
-        asyncio.create_task(dispatch_telegram_alert(alert_body))
+        alert_body = f"🚨 <b>ERRO 500</b>\n🔗 Rota: {request.url.path}\n❌ Erro: {str(error)}\n\n<pre>{stack_trace[:500]}</pre>"
+        asyncio.create_task(dispatch_telegram_alert(alert_body, parse_mode="HTML"))
         raise error
 
 # Routes

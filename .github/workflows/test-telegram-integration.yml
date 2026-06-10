@@ -1,0 +1,53 @@
+name: Test Telegram Integration
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/services/telegram.py']
+  workflow_dispatch:
+
+jobs:
+  test-telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test Telegram Bot Connection
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd backend
+          python test_telegram.py
+        timeout-minutes: 2
+
+      - name: Notify Telegram - Integration Test Passed
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✅ Telegram integration test passed!
+            Feature is ready for deployment.
+        if: success()
+
+      - name: Notify Telegram - Integration Test Failed
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Telegram integration test failed!
+            Check GitHub Actions for details.
+        if: failure()

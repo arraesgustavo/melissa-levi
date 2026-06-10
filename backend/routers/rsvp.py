@@ -13,9 +13,9 @@ async def submit_rsvp(payload: RSVPSubmission):
         result = supabase.table("rsvps").insert(payload.model_dump()).execute()
 
         if result.data:
-            attending_text = "Sim" if payload.attending == "yes" else "Não"
-            msg = f"💌 Novo RSVP!\n👤 {payload.name}\n✉️ {payload.email}\n🎉 Comparece: {attending_text}"
-            asyncio.create_task(dispatch_telegram_alert(msg))
+            attending_text = "✅ Sim" if payload.attending == "yes" else "❌ Não"
+            msg = f"💌 <b>Novo RSVP!</b>\n👤 <b>Nome:</b> {payload.name}\n✉️ <b>Email:</b> {payload.email}\n🎉 <b>Comparece:</b> {attending_text}"
+            asyncio.create_task(dispatch_telegram_alert(msg, parse_mode="HTML"))
             return {"status": "ok"}
 
         raise HTTPException(status_code=500, detail="Falha ao salvar RSVP.")

@@ -4,16 +4,52 @@ on:
   push:
     branches: [ main ]
     paths: ['backend/**']
+  pull_request:
+    branches: [ main ]
+    paths: ['backend/**']
 
 jobs:
-  deploy-to-production:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
-    - name: Trigger Render Webhook Deploy
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
       run: |
-        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run import tests
+      run: cd backend && python test_imports.py
+
+    - name: Notify Telegram - Tests Passed
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: "✅ Backend tests passed! Ready to deploy."
+      if: success()
+
+    - name: Notify Telegram - Tests Failed
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: "❌ Backend tests failed! Check GitHub Actions."
+      if: failure()
+
+  deploy-to-production:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v3
 
     - name: Notify Telegram - Deploy Started
       uses: appleboy/telegram-action@master
@@ -21,15 +57,26 @@ jobs:
         to: ${{ secrets.TELEGRAM_CHAT_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: "🚀 Backend deployment started (commit: ${{ github.sha }})"
-      if: always()
 
-    - name: Notify Telegram - Deploy Result
+    - name: Trigger Render Webhook Deploy
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+    - name: Notify Telegram - Deploy Success
       uses: appleboy/telegram-action@master
       with:
         to: ${{ secrets.TELEGRAM_CHAT_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
-          🚀 DEPLOY REPORT - Backend
-          Status: ${{ job.status }}
+          ✅ Backend deployed successfully!
           Commit: ${{ github.sha }}
-      if: always()
+          Branch: main
+      if: success()
+
+    - name: Notify Telegram - Deploy Failed
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: "❌ Backend deployment failed!"
+      if: failure()

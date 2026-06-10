@@ -4,9 +4,12 @@ on:
   push:
     branches: [main]
     paths: ['frontend/**']
+  pull_request:
+    branches: [main]
+    paths: ['frontend/**']
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -14,6 +17,50 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Run linting
+        run: cd frontend && npm run lint
+        continue-on-error: true
+
+      - name: Build
+        run: cd frontend && npm run build
+
+      - name: Notify Telegram - Tests Passed
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: "✅ Frontend tests passed! Ready to deploy."
+        if: success()
+
+      - name: Notify Telegram - Build Failed
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: "❌ Frontend build failed! Check GitHub Actions."
+        if: failure()
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Notify Telegram - Deploy Started
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: "🎨 Frontend deployment started"
 
       - name: Install and Build
         run: cd frontend && npm ci && npm run build
@@ -26,15 +73,15 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./frontend
 
-      - name: Notify Telegram
+      - name: Notify Telegram - Deploy Success
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "🎨 Frontend deployed successfully! Visit https://melissalevi.me"
+          message: "🎨 Frontend deployed successfully! 🌐 https://melissalevi.me"
         if: success()
 
-      - name: Notify Telegram - Failure
+      - name: Notify Telegram - Deploy Failed
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
