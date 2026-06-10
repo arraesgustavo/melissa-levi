@@ -60,7 +60,19 @@ jobs:
 
     - name: Trigger Render Webhook Deploy
       run: |
-        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        render_hook_url="$(printf '%s' '${{ secrets.RENDER_DEPLOY_HOOK_URL }}' | tr -d '\r\n')"
+
+        if [ -z "$render_hook_url" ]; then
+          echo "RENDER_DEPLOY_HOOK_URL secret is empty or invalid."
+          exit 1
+        fi
+
+        if [[ ! "$render_hook_url" =~ ^https?:// ]]; then
+          echo "RENDER_DEPLOY_HOOK_URL must start with http:// or https://."
+          exit 1
+        fi
+
+        curl --fail --silent --show-error -X POST "$render_hook_url"
 
     - name: Notify Telegram - Deploy Success
       uses: appleboy/telegram-action@master
