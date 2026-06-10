@@ -32,3 +32,4 @@ supabase/seed.sql
 # OS
 .DS_Store
 Thumbs.db
+.env.vercel
