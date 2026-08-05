@@ -5,7 +5,7 @@ export const wedding = {
   dateShort: '11.07.2027',
   dateLong: 'Sábado, 11 de Julho de 2027',
   rsvpBy: '1 de Maio de 2027',
-  ceremony: 'Cerimônia · 16h',
+  ceremony: 'Cerimônia · 17h',
   reception: 'Recepção · 18h — 23h',
   venue: 'Bassi Eventos',
   address1: 'Rua Osberre Bassi, 367 - Jardim Sao Judas Tadeu',
