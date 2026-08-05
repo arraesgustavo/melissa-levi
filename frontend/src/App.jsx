@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import theme from './theme';
 import { NavBar } from './layout/NavBar';
@@ -7,6 +8,10 @@ import { Home } from './pages/Home';
 import { WhenWhere } from './pages/WhenWhere';
 import { RSVP } from './pages/RSVP';
 import { COLORS } from './theme';
+
+// lazy: keeps supabase-js/DataGrid (and their eager client init) out of the main bundle,
+// so a missing Supabase env var only breaks /admin, not the whole site
+const Admin = lazy(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
 
 const globalStyles = `
   *, *::before, *::after { box-sizing: border-box; }
@@ -48,23 +53,33 @@ const globalStyles = `
   @keyframes popIn { 0%{ transform: scale(.6); opacity: 0 } 100%{ transform: scale(1); opacity: 1 } }
 `;
 
+function Layout() {
+  const { pathname } = useLocation();
+  const isAdmin = pathname === '/admin';
+
+  return (
+    <Box sx={{ backgroundColor: COLORS.cream, minHeight: '100vh', overflowX: 'hidden' }}>
+      {!isAdmin && <NavBar />}
+      <Box>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/quando-onde" element={<WhenWhere />} />
+          <Route path="/rsvp" element={<RSVP />} />
+          <Route path="/admin" element={<Suspense fallback={null}><Admin /></Suspense>} />
+        </Routes>
+      </Box>
+      {!isAdmin && <Footer />}
+    </Box>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <style>{globalStyles}</style>
       <Router>
-        <Box sx={{ backgroundColor: COLORS.cream, minHeight: '100vh', overflowX: 'hidden' }}>
-          <NavBar />
-          <Box>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/quando-onde" element={<WhenWhere />} />
-              <Route path="/rsvp" element={<RSVP />} />
-            </Routes>
-          </Box>
-          <Footer />
-        </Box>
+        <Layout />
       </Router>
     </ThemeProvider>
   );

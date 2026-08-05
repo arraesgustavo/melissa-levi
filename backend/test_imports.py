@@ -41,10 +41,22 @@ def test_routers_imports():
     """Test that routers can be imported"""
     try:
         from routers.rsvp import router
+        from routers.admin import router as admin_router
         assert router is not None
-        print("✅ routers.rsvp imported successfully")
+        assert admin_router is not None
+        print("✅ routers imported successfully")
     except Exception as e:
         print(f"❌ Failed to import routers: {e}")
+        raise
+
+def test_auth_imports():
+    """Test that the admin auth dependency can be imported"""
+    try:
+        from services.auth import get_current_admin
+        assert get_current_admin is not None
+        print("✅ services.auth imported successfully")
+    except Exception as e:
+        print(f"❌ Failed to import services.auth: {e}")
         raise
 
 if __name__ == "__main__":
@@ -52,4 +64,5 @@ if __name__ == "__main__":
     test_models_imports()
     test_services_imports()
     test_routers_imports()
+    test_auth_imports()
     print("\n✨ All import tests passed!")

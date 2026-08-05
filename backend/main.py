@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from routers.rsvp import router as rsvp_router
+from routers.admin import router as admin_router
 from services.telegram import dispatch_telegram_alert
 
 load_dotenv()
@@ -45,6 +46,7 @@ async def error_telemetry_middleware(request: Request, call_next):
 
 # Routes
 app.include_router(rsvp_router)
+app.include_router(admin_router)
 
 @app.get("/health")
 async def health_check():

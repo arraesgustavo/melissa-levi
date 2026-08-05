@@ -20,8 +20,6 @@ import { Eyebrow, Ornament, Reveal } from '../components';
 import { COLORS, FONTS } from '../theme';
 import { wedding } from '../data/wedding';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
-
 function Field(props) {
   return <TextField fullWidth variant="outlined" InputLabelProps={{ shrink: true }} {...props} />;
 }
@@ -118,7 +116,7 @@ export function RSVP() {
       setApiError(null);
 
       try {
-        const response = await fetch(`${API_URL}/api/rsvp`, {
+        const response = await fetch('/api/rsvp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

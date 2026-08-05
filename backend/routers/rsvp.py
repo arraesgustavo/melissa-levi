@@ -42,12 +42,3 @@ async def submit_rsvp(payload: RSVPSubmission):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/rsvps")
-async def list_rsvps():
-    try:
-        supabase = get_client()
-        result = supabase.table("rsvps").select("*").order("created_at", desc=True).execute()
-        return result.data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

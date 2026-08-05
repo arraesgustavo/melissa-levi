@@ -13,5 +13,7 @@ services:
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
+      - key: ADMIN_USER_ID
+        sync: false
       - key: FRONTEND_URL
         value: https://melissalevi.page
