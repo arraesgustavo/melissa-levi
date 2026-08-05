@@ -133,7 +133,11 @@ export function RSVP() {
           }),
         });
 
-        if (response.ok) {
+        const data = response.headers.get('content-type')?.includes('application/json')
+          ? await response.json().catch(() => null)
+          : null;
+
+        if (response.ok && data?.status === 'ok') {
           setSubmitted(true);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
