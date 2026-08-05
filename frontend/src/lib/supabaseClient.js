@@ -1,28 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-let _client = null;
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://coopmbirrsayeelcjuzw.supabase.co';
 
-function getSupabaseClient() {
-  if (_client) return _client;
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvb3BtYmlycnNheWVlbGNqdXp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NTYwNjksImV4cCI6MjA5NjUzMjA2OX0.aTO2HA3MvpMDVYrpJ8nCNyzeIc_hBwFBjO9rcCsf85M';
 
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error(
-      'Supabase env vars not set. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your deployment environment.'
-    );
-  }
-
-  _client = createClient(url, key);
-  return _client;
-}
-
-export const supabase = new Proxy({}, {
-  get(_, prop) {
-    return getSupabaseClient()[prop];
-  },
-  apply(_, __, args) {
-    return getSupabaseClient()(...args);
-  },
-});
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
