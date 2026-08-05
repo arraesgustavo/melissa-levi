@@ -130,7 +130,6 @@ export function Admin() {
           columns={columns}
           getRowId={(r) => r.id}
           loading={loading}
-          showToolbar
           disableRowSelectionOnClick
           initialState={{ sorting: { sortModel: [{ field: 'created_at', sort: 'desc' }] } }}
           sx={{ border: 'none', fontFamily: 'inherit' }}
