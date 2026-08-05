@@ -185,7 +185,7 @@ export function RSVP() {
         {submitted ? (
           <ConfirmCard attending={f.attending} name={f.name.trim().split(' ')[0]} onReset={reset} />
         ) : (
-          <Reveal delay={180} as="form">
+          <Reveal delay={180}>
             <Box component="form" onSubmit={submit} noValidate sx={{ '& .MuiTextField-root': { mb: 0 } }}>
               <Stack spacing={3.5}>
                 {apiError && (
