@@ -6,4 +6,4 @@ drop policy if exists "anon read all" on public.rsvps;
 create policy "admin read all" on public.rsvps
   for select
   to authenticated
-  using ((select auth.uid()) = 'dc5da923-7e6b-4cef-8d31-3f7c83ed96e2'::uuid);
+  using ((select auth.uid()) = 'b20dc951-b872-4123-991a-df1e2fb12f01'::uuid);
