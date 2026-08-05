@@ -9,9 +9,10 @@ export default defineConfig(({ mode }) => {
   const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY;
 
   if (mode === 'production' && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
-    throw new Error(
-      'Missing Supabase env vars. Set VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY (local dev) ' +
-      'or SUPABASE_URL & SUPABASE_ANON_KEY (Vercel).'
+    console.warn(
+      '\x1b[33m%s\x1b[0m',
+      'WARNING: Supabase env vars not found. The app will fail at runtime on pages that use the Supabase client. ' +
+      'Set SUPABASE_URL & SUPABASE_ANON_KEY (Vercel) or VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY (local .env).'
     );
   }
 
