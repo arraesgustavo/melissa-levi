@@ -2,6 +2,7 @@ from supabase import create_client, ClientOptions
 import os
 
 _client = None
+_service_client = None
 
 def get_client():
     global _client
@@ -10,6 +11,14 @@ def get_client():
         key = os.getenv("SUPABASE_ANON_KEY")
         _client = create_client(url, key)
     return _client
+
+def get_service_client():
+    global _service_client
+    if _service_client is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        _service_client = create_client(url, key)
+    return _service_client
 
 def get_client_for_token(token: str):
     # ponytail: fresh client per call so the Authorization header never leaks
