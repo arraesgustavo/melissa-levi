@@ -29,44 +29,9 @@ function PageHeader({ eyebrow, title, sub }) {
   );
 }
 
-function VenueHighlightBanner() {
-  return (
-    <Box sx={{ pb: { xs: 8, md: 10 }, px: 2 }}>
-      <Container maxWidth="md">
-        <Reveal delay={160}>
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: { xs: 4, md: 5 },
-              px: { xs: 3, md: 6 },
-              backgroundColor: COLORS.creamDeep,
-              borderTop: `1px solid ${COLORS.line}`,
-              borderBottom: `1px solid ${COLORS.line}`,
-            }}
-          >
-            <Typography
-              variant="h3"
-              sx={{
-                fontSize: { xs: '1.65rem', md: '2.25rem' },
-                color: COLORS.ink,
-                fontStyle: 'italic',
-                fontWeight: 400,
-                lineHeight: 1.35,
-                textWrap: 'balance',
-              }}
-            >
-              {wedding.venueHighlight}
-            </Typography>
-          </Box>
-        </Reveal>
-      </Container>
-    </Box>
-  );
-}
-
 function WhenWhereDetails() {
   return (
-    <Box sx={{ py: { xs: 6, md: 10 } }}>
+    <Box sx={{ py: { xs: 4, md: 8 } }}>
       <Container maxWidth="lg">
         <Grid
           container
@@ -163,18 +128,20 @@ function WhenWhereDetails() {
                 {wedding.venueHighlight}
               </Typography>
               <Stack
-                direction="row"
-                spacing={1.2}
+                direction="column"
+                spacing={0.8}
                 alignItems="center"
                 justifyContent="center"
                 sx={{
-                  px: 2.5,
-                  py: 1.2,
+                  mx: 'auto',
+                  px: 3,
+                  py: 1.6,
                   border: `1px solid ${COLORS.line}`,
                   backgroundColor: COLORS.creamDeep,
+                  textAlign: 'center',
                 }}
               >
-                <LocalParkingOutlinedIcon sx={{ fontSize: 18, color: COLORS.accent }} />
+                <LocalParkingOutlinedIcon sx={{ fontSize: 22, color: COLORS.accent, display: 'block' }} />
                 <Typography
                   sx={{
                     fontFamily: FONTS.SANS,
@@ -182,6 +149,7 @@ function WhenWhereDetails() {
                     fontSize: '0.82rem',
                     letterSpacing: '0.08em',
                     color: COLORS.ink,
+                    lineHeight: 1.4,
                   }}
                 >
                   {wedding.parkingInfo}
@@ -205,7 +173,7 @@ function VenueGallery({ onConfirm }) {
             {wedding.venue}
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 560, mx: 'auto' }}>
-            {wedding.venueHighlight} {wedding.parkingInfo}
+            {wedding.address1} · {wedding.address2}
           </Typography>
         </Reveal>
 
@@ -260,7 +228,6 @@ export function WhenWhere() {
         title="A Celebração"
         sub="Tudo o que você precisa saber sobre a data, o horário e o local do nosso casamento em São José dos Campos."
       />
-      <VenueHighlightBanner />
       <WhenWhereDetails />
       <VenueGallery onConfirm={() => go('/rsvp')} />
     </Box>
