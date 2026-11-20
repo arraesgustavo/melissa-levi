@@ -1,463 +1,351 @@
-# Melissa & Levi Wedding Site
-
-Production-ready full-stack wedding website built with React, FastAPI, and Supabase.
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Local Development](#local-development)
-- [Environment Configuration](#environment-configuration)
-- [Database Setup](#database-setup)
-- [DNS Configuration](#dns-configuration)
-- [GitHub Actions Secrets](#github-actions-secrets)
-- [Deployment Checklist](#deployment-checklist)
-
-## Overview
-
-This project is a complete wedding website with:
-
-- **Frontend**: React 18 + Vite + Material-UI v5 (deployed on Vercel)
-- **Backend**: FastAPI + Python 3.11+ (deployed on Render)
-- **Database**: Supabase (PostgreSQL) with Row Level Security
-- **Monitoring**: Telegram Bot alerts for errors
-- **CI/CD**: GitHub Actions for automated deployments
-
-### Architecture
-
-```
-User Browser
-    ↓ (https://melissalevi.me)
-Vercel Edge Network (Frontend)
-    ↓ (/api requests)
-Render Web Service (FastAPI Backend)
-    ↓ (queries)
-Supabase PostgreSQL Database
-    ↓ (alerts)
-Telegram Bot API
-```
-
-## Prerequisites
-
-- **Node.js** 20+ (for frontend)
-- **Python** 3.11+ (for backend)
-- **Supabase CLI** (optional, for local migrations)
-- **Vercel CLI** (for frontend deployment)
-- **Git** (for version control)
-
-### Installation
-
-```bash
-# Verify Node.js
-node --version  # should be v20+
-
-# Verify Python
-python3 --version  # should be 3.11+
-
-# Install Vercel CLI (optional)
-npm install -g vercel
-
-# Install Supabase CLI (optional)
-npm install -g supabase
-```
-
-## Local Development
-
-### 1. Clone Repository
-
-```bash
-git clone <repository-url>
-cd melissa-levi
-```
-
-### 2. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-### 3. Backend Setup
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 4. Run Local Development Servers
-
-**Terminal 1 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`
-
-**Terminal 2 - Backend:**
-```bash
-cd backend
-source venv/bin/activate  # Activate virtual environment
-python3 -m uvicorn main:app --reload
-```
-
-The backend will be available at `http://localhost:8000`
-
-Visit `http://localhost:5173` in your browser. The frontend will automatically proxy API requests to the backend via Vite's dev server.
-
-## Environment Configuration
-
-### Frontend (.env.local)
-
-Create `frontend/.env.local` (only needed in production or specific environments):
-
-```env
-VITE_API_URL=https://api.melissalevi.me
-```
-
-**Note**: In local development, the Vite dev server proxies `/api` requests to `localhost:8000`.
-
-### Backend (.env)
-
-Create `backend/.env` from the template:
-
-```bash
-cd backend
-cp .env.example .env
-```
-
-Edit `backend/.env`:
-
-```env
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
-TELEGRAM_CHAT_ID=9876543210
-FRONTEND_URL=https://melissalevi.me
-```
-
-**⚠️ IMPORTANT**: Never commit `.env` files to Git. Use `.env.example` as a template.
-
-## Database Setup
-
-### 1. Create Supabase Project
-
-1. Go to [supabase.com](https://supabase.com)
-2. Click "New project"
-3. Choose region (preferably closest to your users)
-4. Generate a strong database password
-5. Create project and wait for initialization
-
-### 2. Get Connection Credentials
-
-1. Open your Supabase project
-2. Go to **Settings** → **API**
-3. Copy the **URL** and **anon public key**
-4. Add them to `backend/.env`
-
-### 3. Create Database Schema
-
-**Option A: Using Supabase Dashboard (Recommended for beginners)**
-
-1. Go to **SQL Editor** in your Supabase dashboard
-2. Click **New Query**
-3. Copy and paste the contents of `supabase/migrations/001_create_rsvps.sql`
-4. Click **Run**
-
-**Option B: Using Supabase CLI**
-
-```bash
-# If you have Supabase CLI installed
-supabase link --project-ref=your-project-ref
-supabase db push
-```
-
-### 4. Verify Schema
-
-In Supabase dashboard:
-1. Go to **Database** → **Tables**
-2. Verify `rsvps` table exists with these columns:
-   - `id` (uuid, primary key)
-   - `name` (text)
-   - `email` (text)
-   - `attending` (text: 'yes' or 'no')
-   - `guests` (integer)
-   - `meal` (text)
-   - `dietary` (text)
-   - `song` (text)
-   - `note` (text)
-   - `created_at` (timestamptz)
-
-## Telegram Bot Setup (Optional but Recommended)
-
-### 1. Create Telegram Bot
-
-1. Open Telegram and search for **@BotFather**
-2. Send `/newbot`
-3. Choose a name (e.g., "Melissa & Levi Wedding Bot")
-4. Choose a username (e.g., `melissa_levi_wedding_bot`)
-5. Copy the **bot token** (looks like `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
-
-### 2. Get Your Chat ID
-
-1. Create a private Telegram group (or use your personal chat)
-2. Add your bot to the group
-3. Send a test message to the bot
-4. Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-5. Look for `"chat":{"id":...}` to find your chat ID
-
-### 3. Add to .env
-
-```env
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
-TELEGRAM_CHAT_ID=9876543210
-```
-
-## DNS Configuration
-
-Configure your domain registrar to point to Vercel.
-
-### Name.com Configuration
-
-1. Log into your Name.com account
-2. Select your domain (`melissalevi.me`)
-3. Go to **Manage DNS Records**
-4. Remove any existing A, CNAME, or MX records for the root domain
-5. Add these records:
-
-| Type | Host | Value | TTL |
-|------|------|-------|-----|
-| A | @ | 76.76.21.21 | 300 |
-| CNAME | www | cname.vercel-dns.com. | 300 |
-
-6. Click **Save**
-7. Wait for DNS propagation (usually 15-30 minutes)
-
-### Verify DNS
-
-```bash
-# Check A record
-nslookup melissalevi.me
-
-# Check CNAME record
-nslookup www.melissalevi.me
-```
-
-**Note**: Vercel will automatically provision an SSL/TLS certificate from Let's Encrypt once DNS is configured.
-
-## GitHub Actions Secrets
-
-Configure secrets in your GitHub repository for automated deployments.
-
-### 1. Backend Deployment Secrets
-
-1. Go to **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Add these secrets:
-
-```
-RENDER_DEPLOY_HOOK_URL
-TELEGRAM_BOT_TOKEN
-TELEGRAM_CHAT_ID
-```
-
-To get `RENDER_DEPLOY_HOOK_URL`:
-1. Create a service in Render.com
-2. Go to **Settings** → **Deploy Hook**
-3. Copy the webhook URL
-
-### 2. Frontend Deployment Secrets
-
-Add these secrets for Vercel deployment:
-
-```
-VERCEL_TOKEN
-VERCEL_ORG_ID
-VERCEL_PROJECT_ID
-```
-
-Get these values by:
-```bash
-# After installing Vercel CLI
-cd frontend
-vercel login
-vercel env list  # To verify your project is linked
-```
-
-Or manually from Vercel dashboard:
-1. Go to your Vercel project
-2. **Settings** → **Tokens** (for VERCEL_TOKEN)
-3. **Settings** → **General** (for ORG_ID and PROJECT_ID in URL)
-
-## Deployment Checklist
-
-### Frontend (Vercel)
-
-- [ ] Install Vercel CLI: `npm install -g vercel`
-- [ ] Link project: `cd frontend && vercel login && vercel link`
-- [ ] Set environment variables in Vercel dashboard
-- [ ] Deploy: `vercel --prod`
-- [ ] Verify: `https://melissalevi.me` loads correctly
-- [ ] Test form submission on `/rsvp`
-
-### Backend (Render)
-
-- [ ] Create account at render.com
-- [ ] Create new Web Service
-- [ ] Connect GitHub repository
-- [ ] Configure build command: `pip install -r requirements.txt`
-- [ ] Configure start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- [ ] Add environment variables:
-  - `SUPABASE_URL`
-  - `SUPABASE_ANON_KEY`
-  - `TELEGRAM_BOT_TOKEN`
-  - `TELEGRAM_CHAT_ID`
-  - `FRONTEND_URL`
-- [ ] Deploy and verify: `https://<service-name>.onrender.com/health` returns `{"status":"ok"}`
-- [ ] Test RSVP endpoint: `curl -X POST https://<service-name>.onrender.com/api/rsvp -H "Content-Type: application/json" -d '{"name":"Test","email":"test@example.com","attending":"yes"}'`
-
-### Database (Supabase)
-
-- [ ] Create Supabase project
-- [ ] Run migration: Create `rsvps` table
-- [ ] Enable Row Level Security
-- [ ] Verify table has correct columns
-- [ ] Test connection from backend
-
-### DNS & SSL
-
-- [ ] Configure DNS records at Name.com (A and CNAME)
-- [ ] Wait for DNS propagation (15-30 min)
-- [ ] Verify SSL certificate issued by Let's Encrypt
-- [ ] Test HTTPS at `https://melissalevi.me`
-
-### GitHub Actions
-
-- [ ] Add all required secrets to repository
-- [ ] Push to `main` branch
-- [ ] Verify workflows run successfully
-- [ ] Check Telegram notifications
-
-### Post-Launch Testing
-
-- [ ] [ ] Open https://melissalevi.me on desktop
-- [ ] [ ] Navigate through all pages (Home, Quando & Onde, RSVP)
-- [ ] [ ] Test form submission with valid data
-- [ ] [ ] Verify RSVP appears in Supabase dashboard
-- [ ] [ ] Check Telegram notification received
-- [ ] [ ] Test on mobile (iOS Safari, Chrome, Firefox)
-- [ ] [ ] Verify touch targets are ≥44×44px
-- [ ] [ ] Test animations (scroll reveals)
-- [ ] [ ] Test images load correctly
-- [ ] [ ] Verify registry link works
-
-## Troubleshooting
-
-### "API requests returning 404 or CORS error"
-
-**Frontend (Vite dev)**: The dev server should proxy `/api` to `http://localhost:8000`. Make sure both services are running.
-
-**Production**: Ensure `FRONTEND_URL` environment variable in backend matches your Vercel domain.
-
-### "RSVP not saving to database"
-
-1. Check backend logs for errors
-2. Verify Supabase credentials in `.env`
-3. Verify `rsvps` table exists in Supabase
-4. Check Row Level Security policies allow inserts
-
-### "Telegram notifications not sending"
-
-1. Verify bot token is correct
-2. Verify chat ID is correct
-3. Ensure bot has permission to send messages in the chat
-4. Check backend logs for Telegram API errors
-
-### "DNS not resolving"
-
-```bash
-# Clear DNS cache and check
-nslookup melissalevi.me
-dig melissalevi.me
-
-# Wait up to 48 hours for full propagation
-```
-
-## Project Structure
-
-```
-melissa-levi/
-├── frontend/                 # React + Vite application
-│   ├── src/
-│   │   ├── components/      # Reusable components
-│   │   ├── pages/           # Page components
-│   │   ├── layout/          # Layout components (NavBar, Footer)
-│   │   ├── theme/           # MUI theme & colors
-│   │   ├── data/            # Wedding data
-│   │   └── App.jsx          # Main app with router
-│   ├── public/              # Static assets
-│   ├── vite.config.js       # Vite configuration
-│   ├── package.json
-│   └── vercel.json          # Vercel SPA rewrite rules
-│
-├── backend/                 # FastAPI application
-│   ├── main.py             # FastAPI app entry point
-│   ├── routers/            # API route handlers
-│   ├── services/           # External services (Supabase, Telegram)
-│   ├── models/             # Pydantic models
-│   ├── requirements.txt    # Python dependencies
-│   ├── .env.example        # Environment template
-│   └── render.yaml         # Render deployment config
-│
-├── supabase/
-│   └── migrations/         # SQL migrations
-│       └── 001_create_rsvps.sql
-│
-├── .github/
-│   └── workflows/          # GitHub Actions workflows
-│       ├── backend-deploy.yml
-│       └── frontend-deploy.yml
-│
-└── README.md              # This file
-```
-
-## Production Notes
-
-### Monitoring & Alerts
-
-- **Backend errors**: Automatically sent to Telegram
-- **Deployment status**: Sent to Telegram after each GitHub Actions run
-- **Database**: Monitor Supabase dashboard for connection pool usage
-
-### Cost Estimate (Monthly)
-
-- **Vercel**: $0 (Hobby plan)
-- **Render**: $0 (Free tier, up to 100 concurrent connections)
-- **Supabase**: $0 (Free tier, 500MB database)
-- **Telegram**: $0 (Bot API)
-- **Domain**: ~$10-15 (varies by registrar)
-- **Total**: ~$10-15/month
-
-### Maintenance
-
-- Update dependencies quarterly: `npm upgrade`, `pip install --upgrade -r requirements.txt`
-- Monitor Supabase storage usage
-- Review Telegram logs monthly
-- Backup database regularly (Supabase auto-backups included)
-
-## Support
-
-For issues or questions:
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Review deployment logs in GitHub Actions
-3. Check Render and Vercel dashboards
-4. Review Supabase database status
+# Melissa & Levi — Wedding Website Documentation
+
+Central technical documentation and source of truth for the **Melissa & Levi** full-stack wedding website (`https://melissalevi.page`).
+
+- **Repository**: `https://github.com/arraesgustavo/melissa-levi` (default branch: `main`)
+- **Production Frontend**: `https://melissalevi.page` (Vercel)
+- **Production Backend**: `https://melissa-levi-backend.onrender.com` (Render)
+- **Database & Auth**: Supabase (PostgreSQL + Row Level Security + GoTrue Auth)
+- **Notifications & Alerts**: Telegram Bot API
 
 ---
 
-**Site**: https://melissalevi.me  
-**Date**: 2027-07-XX  
-**Location**: São José dos Campos, São Paulo, Brasil
-# Rebuild
+## Table of Contents
+
+1. [Overview & Capabilities](#1-overview--capabilities)
+2. [System Architecture](#2-system-architecture)
+3. [Project Structure](#3-project-structure)
+4. [Key Architectural Decisions & Git History Insights](#4-key-architectural-decisions--git-history-insights)
+5. [Components, Modules & Responsibilities](#5-components-modules--responsibilities)
+6. [Database Schema & Security (RLS)](#6-database-schema--security-rls)
+7. [API Reference](#7-api-reference)
+8. [Dependencies & Environment Configuration](#8-dependencies--environment-configuration)
+9. [Local Development & Testing](#9-local-development--testing)
+10. [CI/CD & Production Deployment](#10-cicd--production-deployment)
+11. [Known Issues, Security Advisories & Backlog](#11-known-issues-security-advisories--backlog)
+
+---
+
+## 1. Overview & Capabilities
+
+The application is a decoupled, zero-fixed-cost full-stack wedding site built for **Melissa & Levi** (event date: **July 11, 2027**, at **Bassi Eventos**, São José dos Campos, SP, Brazil):
+
+- **Public Editorial Pages**: Responsive, mobile-first `Home` (`/`) and `Quando & Onde` (`/quando-onde`) pages with custom typography (`Cormorant Garamond` + `Jost`), scroll-reveal animations, and a gift registry link.
+- **RSVP Flow (`/rsvp`)**: Interactive form with client-side and server-side (Pydantic) validation, conditional attendance fields, PostgreSQL persistence, and real-time Telegram notifications.
+- **Admin Dashboard (`/admin`)**: Protected guest management view authenticated via Supabase email/password login, backed by JWT verification + PostgreSQL RLS, and rendered with MUI `DataGrid`.
+- **Operational Telemetry**: Unhandled backend HTTP `500` errors and GitHub Actions CI/CD events automatically alert a Telegram chat.
+
+---
+
+## 2. System Architecture
+
+```text
+User Browser (https://melissalevi.page)
+  │
+  ├── Static SPA Assets ──────────────────► Vercel Edge Network (React + Vite)
+  │
+  ├── /api/* (Same-Origin Rewrite) ───────► Vercel Proxy (frontend/vercel.json)
+  │                                               │
+  │                                               ▼
+  │                                         Render Web Service (FastAPI + Uvicorn)
+  │                                               ├── POST /api/rsvp (service_role) ──► Supabase PostgreSQL
+  │                                               ├── GET /api/admin/rsvps (JWT+RLS) ─► Supabase PostgreSQL
+  │                                               └── Async Alerts (RSVP / 500s) ─────► Telegram Bot API
+  │
+  └── /admin Auth (Sign-in / Session) ────► Supabase Auth (GoTrue)
+```
+
+### Core Data Flows
+
+1. **RSVP Submission (`POST /api/rsvp`)**:
+   - Guest submits the form in `frontend/src/pages/RSVP.jsx`.
+   - Frontend sends `POST /api/rsvp` (proxied to `localhost:8000` by Vite in dev, or to `https://melissa-levi-backend.onrender.com/api/rsvp` by `frontend/vercel.json` in production).
+   - FastAPI validates the payload with `RSVPSubmission` (`backend/models/rsvp.py`), inserts into `public.rsvps` using the Supabase `service_role` client, and schedules a non-blocking Telegram notification via `asyncio.create_task`.
+   - Frontend verifies both `response.ok` and `data?.status === 'ok'` before showing the confirmation screen.
+
+2. **Admin Guest List (`GET /api/admin/rsvps`)**:
+   - Admin visits `/admin` (lazy-loaded bundle without public `NavBar`/`Footer`) and signs in via `supabase.auth.signInWithPassword`.
+   - Frontend calls `GET /api/admin/rsvps` with `Authorization: Bearer <access_token>`.
+   - Backend dependency `get_current_admin` validates the JWT with Supabase Auth and verifies `user.id == ADMIN_USER_ID` (`401` if invalid/expired, `403` if non-admin).
+   - Backend instantiates a fresh per-request Supabase client scoped to that JWT (`get_client_for_token`), querying `public.rsvps` under PostgreSQL RLS (`"admin read all"`).
+
+---
+
+## 3. Project Structure
+
+```text
+melissa&levi/
+├── README.md                          # Central project documentation (this file)
+├── dev.sh                             # Local dev launcher (starts backend + frontend concurrently)
+├── todo.txt                           # Feature backlog notes
+├── backend/                           # FastAPI application (Render)
+│   ├── main.py                        # App entry point, CORS, 500 telemetry middleware, /health
+│   ├── render.yaml                    # Render Blueprint specification
+│   ├── requirements.txt               # Pinned Python dependencies
+│   ├── models/
+│   │   └── rsvp.py                    # Pydantic schema: RSVPSubmission
+│   ├── routers/
+│   │   ├── rsvp.py                    # POST /api/rsvp
+│   │   └── admin.py                   # GET /api/admin/rsvps
+│   ├── services/
+│   │   ├── auth.py                    # Admin JWT verification dependency (get_current_admin)
+│   │   ├── supabase.py                # Supabase clients (anon, service_role, per-token)
+│   │   └── telegram.py                # Async/sync Telegram alert dispatchers
+│   ├── test_imports.py                # Module import smoke test (run in CI)
+│   ├── test_auth.py                   # Unit tests for admin authorization (200/401/403)
+│   └── test_telegram.py               # Live Telegram bot connectivity test
+├── frontend/                          # React + Vite SPA (Vercel, Root Directory = frontend)
+│   ├── index.html                     # HTML entry point & Google Fonts links
+│   ├── package.json                   # Frontend dependencies & npm scripts
+│   ├── vite.config.js                 # Vite config + local /api -> localhost:8000 proxy
+│   ├── vercel.json                    # Production /api/* proxy to Render + SPA fallback rewrite
+│   ├── eslint.config.js               # ESLint flat configuration
+│   ├── .env.example                   # Template for VITE_SUPABASE_* vars (currently unused at runtime)
+│   └── src/
+│       ├── main.jsx                   # React root mount
+│       ├── App.jsx                    # ThemeProvider, global CSS, Router, lazy /admin route
+│       ├── theme/index.js             # MUI theme, COLORS, FONTS, component overrides
+│       ├── data/wedding.js            # Static wedding metadata & image URLs
+│       ├── lib/supabaseClient.js      # Supabase browser client (used by /admin)
+│       ├── layout/
+│       │   ├── NavBar.jsx             # Fixed responsive header + mobile Drawer
+│       │   └── Footer.jsx             # Dark footer with navigation links
+│       ├── components/
+│       │   ├── index.js               # Barrel export
+│       │   ├── Eyebrow.jsx            # Uppercase tracked section label
+│       │   ├── Ornament.jsx           # Decorative diamond divider
+│       │   ├── FadeImage.jsx          # Progressive image fade-in with "M & L" error fallback
+│       │   └── Reveal.jsx             # IntersectionObserver + scroll reveal animation
+│       └── pages/
+│           ├── Home.jsx               # Landing page (Hero, Invitation, Strip, Accommodations, Registry, CTA)
+│           ├── WhenWhere.jsx          # Event details & schedule
+│           ├── RSVP.jsx               # RSVP form, validation, API submission, ConfirmCard
+│           └── Admin.jsx              # Admin login & MUI DataGrid guest table
+├── supabase/
+│   └── migrations/
+│       ├── 001_create_rsvps.sql       # rsvps table, email index, initial RLS policies
+│       └── 002_admin_rls.sql          # Drops anon SELECT, adds admin-only authenticated SELECT
+├── .github/workflows/
+│   ├── backend-deploy.yml             # Backend import test + Render webhook deploy + Telegram alerts
+│   ├── frontend-deploy.yml            # Frontend lint/build + Vercel prebuilt deploy + Telegram alerts
+│   └── test-telegram-integration.yml  # Telegram integration test on telegram.py changes
+├── resources/                         # Local image assets (venue photo)
+├── qrcode/                            # Generated wedding QR codes (untracked locally)
+└── claude-design/                     # Original static design prototype & screenshots (non-production)
+```
+
+---
+
+## 4. Key Architectural Decisions & Git History Insights
+
+The repository's Git history reveals several critical design decisions and production fixes that explain the current implementation:
+
+| Decision / Fix | Commits | Rationale & Current Behavior |
+|---|---|---|
+| **Same-origin `/api/*` proxy in Vercel** | `c5f6a6b`, `aeb6046` | Previously, missing `VITE_API_URL` caused `/api/rsvp` to hit Vercel's SPA rewrite and return `index.html` with HTTP `200` (a false-positive success). Now `frontend/vercel.json` proxies `/api/(.*)` directly to Render, and `RSVP.jsx` explicitly validates `data?.status === 'ok'`. |
+| **Production domain is `melissalevi.page`** | `b51e608`, `5e86a15` | Earlier docs referenced `melissalevi.me` (which does not resolve). The live domain is `https://melissalevi.page`, reflected in `backend/render.yaml` and `frontend-deploy.yml`. |
+| **Admin panel with defense-in-depth RLS** | `bfa363f`, `f911de6` | Replaced the open `GET /api/rsvps` endpoint with `GET /api/admin/rsvps`. Access is enforced twice: in FastAPI (`ADMIN_USER_ID` check) and in PostgreSQL (`002_admin_rls.sql` restricts `SELECT` to the admin UUID). |
+| **`service_role` client for RSVP inserts** | `afe0a70` | After `002_admin_rls.sql` removed `"anon read all"`, PostgREST inserts using the `anon` key failed because `.insert().execute()` implicitly requests `RETURNING *`. `POST /api/rsvp` now uses `get_service_client()` (`SUPABASE_SERVICE_ROLE_KEY`). |
+| **Per-request Supabase client for admin reads** | `bfa363f` | `get_client_for_token(token)` creates a fresh Supabase client per request rather than mutating headers on a shared singleton, preventing `Authorization` token leakage across concurrent requests. |
+| **Lazy-loaded `/admin` route** | `bfa363f` | `App.jsx` lazy-loads `Admin.jsx` so `@supabase/supabase-js` and `@mui/x-data-grid` stay out of the main guest bundle and any admin-side error cannot break the public wedding pages. |
+| **Hardcoded Supabase config in frontend** | `3975917`, `9d0a59d`, `709e306` | After Vercel build-time env var issues with `VITE_SUPABASE_*`, `frontend/src/lib/supabaseClient.js` was updated to hardcode the public Supabase URL and `anon` key directly. This is safe because the `anon` key is designed to be public and data access is protected by RLS. |
+| **Vercel CLI prebuilt CI/CD** | `309072c` | Replaced `amondnet/vercel-action@v25` (pinned to an obsolete Vercel CLI rejected by Vercel's API) with `vercel@latest` running `vercel pull` → `vercel build --prod` → `vercel deploy --prebuilt --prod` from the repository root (matching Vercel's `Root Directory = frontend` setting). |
+| **Hardened Render deploy webhook** | `14d9d67`, `12ed67b` (PR #2) | `backend-deploy.yml` strips `\r\n`, asserts non-empty `https://` URL, and uses `curl --fail` so misconfigured secrets fail loudly. |
+
+---
+
+## 5. Components, Modules & Responsibilities
+
+### Frontend (`frontend/src/`)
+
+- **`App.jsx`**: Wraps the app in MUI `ThemeProvider` + `CssBaseline`, injects global CSS (44px touch ergonomics, `font-size: 16px !important` on inputs to prevent iOS Safari zoom, keyframe animations, `prefers-reduced-motion`), configures `BrowserRouter` routes (`/`, `/quando-onde`, `/rsvp`, `/admin`), and hides `NavBar`/`Footer` on `/admin`.
+- **`theme/index.js`**: Defines the warm editorial palette (`cream: #F4EEE3`, `creamDeep: #ECE3D4`, `ink: #1C1B19`, `taupe: #7A6F60`, `line: #CDC2AE`, `accent: #8A6F52`), serif/sans typography (`Cormorant Garamond` / `Jost`), sharp corners (`borderRadius: 0`), and ≥44px touch targets.
+- **`layout/NavBar.jsx` & `layout/Footer.jsx`**: Fixed header that stays transparent over the `Home` hero and transitions to frosted cream on scroll (`scrollY > 60`), switching to a top-anchored MUI `Drawer` below `900px`.
+- **`components/`**:
+  - `Eyebrow.jsx`: Uppercase, wide-tracked section header.
+  - `Ornament.jsx`: Horizontal hairline divider with rotated diamond.
+  - `FadeImage.jsx`: Image wrapper with fade/scale transition on load and an `"M & L"` monogram fallback on load failure.
+  - `Reveal.jsx`: Scroll-triggered entrance animation using `IntersectionObserver` with a passive scroll listener fallback.
+- **`pages/Home.jsx`**: Composes `Hero`, `Invitation`, `WhenWhereStrip`, `Accommodations`, `Registry` (Amazon link), and `ClosingCTA`.
+- **`pages/WhenWhere.jsx`**: Event date/venue detail blocks, timeline (`Schedule`), and accommodations notice.
+- **`pages/RSVP.jsx`**: Controlled form (`name`, `email`, `attending`, `guests`, `meal`, `dietary`, `song`, `note`). Conditionally renders guest count, meal preference (required when `attending === 'yes'`), dietary notes, and song request. Displays `ConfirmCard` on confirmed submission.
+- **`pages/Admin.jsx`**: Subscribes to `supabase.auth.onAuthStateChange`, renders `LoginForm` when unauthenticated, fetches `GET /api/admin/rsvps` when authenticated (auto-signing out on `401`), and displays rows in MUI `DataGrid` with toolbar and default `created_at DESC` sorting.
+- **`data/wedding.js`**: Central static configuration for couple names, event dates (`11.07.2027`), venue (`Bassi Eventos`), address, registry URL, and image sources.
+
+### Backend (`backend/`)
+
+- **`main.py`**: Initializes FastAPI (`v1.0.0`), configures `CORSMiddleware` (`localhost`, `localhost:5173`, `localhost:3000`, `FRONTEND_URL`), registers `error_telemetry_middleware` (dispatches HTML-formatted Telegram alerts with a 500-char stack trace on unhandled exceptions), mounts `rsvp_router` and `admin_router`, and exposes `GET /health`.
+- **`models/rsvp.py`**: `RSVPSubmission(BaseModel)` enforcing `name: str`, `email: EmailStr`, `attending: Literal["yes", "no"]`, `guests: Optional[int] = 1`, and optional `meal`, `dietary`, `song`, `note`.
+- **`routers/rsvp.py`**: `POST /api/rsvp` (`201 Created`). Inserts validated payload via `get_service_client()` and fires an async Telegram notification with formatted guest details.
+- **`routers/admin.py`**: `GET /api/admin/rsvps`. Protected by `Depends(get_current_admin)`; queries `rsvps` ordered by `created_at DESC` using `get_client_for_token(token)`.
+- **`services/auth.py`**: `get_current_admin` using `HTTPBearer`. Calls `get_client().auth.get_user(token)` (`401` on `AuthApiError`) and checks `user.id == os.getenv("ADMIN_USER_ID")` (`403` otherwise).
+- **`services/supabase.py`**: Manages three access patterns: `get_client()` (cached `anon`), `get_service_client()` (cached `service_role`), and `get_client_for_token(token)` (fresh client per request with user JWT).
+- **`services/telegram.py`**: Async `dispatch_telegram_alert(message, parse_mode="HTML")` and sync wrapper `send_telegram_alert_sync`. Gracefully no-ops with a warning if credentials are missing.
+
+---
+
+## 6. Database Schema & Security (RLS)
+
+Managed via SQL migrations in `supabase/migrations/`:
+
+### Table: `public.rsvps` (`001_create_rsvps.sql`)
+
+| Column | Type | Constraints / Default |
+|---|---|---|
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` |
+| `name` | `text` | `NOT NULL` |
+| `email` | `text` | `NOT NULL` (indexed: `idx_rsvps_email`) |
+| `attending` | `text` | `NOT NULL CHECK (attending IN ('yes', 'no'))` |
+| `guests` | `int` | `DEFAULT 1` |
+| `meal` | `text` | Nullable |
+| `dietary` | `text` | Nullable |
+| `song` | `text` | Nullable |
+| `note` | `text` | Nullable |
+| `created_at` | `timestamptz` | `DEFAULT now()` |
+
+### Effective Row Level Security Policies (`001` + `002_admin_rls.sql`)
+
+RLS is enabled on `public.rsvps`:
+
+- **`"anon insert rsvp"`**: Allows `INSERT` (`WITH CHECK (true)`).
+- **`"admin read all"`**: Allows `SELECT` only `TO authenticated` where `(select auth.uid()) = 'b20dc951-b872-4123-991a-df1e2fb12f01'::uuid`. (Replaced `"anon read all"`, which was dropped in `002_admin_rls.sql`.)
+- **`"service_role full access"`**: Grants full access to `service_role` (used by backend `POST /api/rsvp`).
+
+---
+
+## 7. API Reference
+
+| Method | Path | Auth | Status | Description |
+|---|---|---|---|---|
+| `GET` | `/health` | Public | `200` | Health check; returns `{"status": "ok"}`. |
+| `POST` | `/api/rsvp` | Public | `201` | Validates `RSVPSubmission`, saves to `public.rsvps`, sends async Telegram alert; returns `{"status": "ok"}`. |
+| `GET` | `/api/admin/rsvps` | Bearer JWT (Admin) | `200` | Returns JSON array of all rows in `public.rsvps` ordered by `created_at DESC`. Returns `401` on invalid/expired token, `403` on non-admin user. |
+
+---
+
+## 8. Dependencies & Environment Configuration
+
+### Runtime Versions & Key Packages
+
+- **Frontend** (Node.js 20+, `frontend/package.json`):
+  - `react` `^19.2.6`, `react-dom` `^19.2.6`, `react-router-dom` `^7.17.0`
+  - `@mui/material` `^9.1.0`, `@mui/icons-material` `^9.1.0`, `@mui/x-data-grid` `^9.10.1`, `@emotion/react`, `@emotion/styled`
+  - `@supabase/supabase-js` `^2.112.1`
+  - `vite` `^8.0.12`, `eslint` `^10.3.0`
+- **Backend** (Python 3.12 in CI, `backend/requirements.txt`):
+  - `fastapi==0.136.3`, `uvicorn==0.49.0`, `pydantic==2.13.4`, `email-validator==2.3.0`
+  - `supabase==2.31.0`, `python-telegram-bot==22.7`, `python-dotenv==1.2.2`
+
+### Backend Environment Variables (`backend/.env` locally & Render Dashboard in prod)
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `SUPABASE_URL` | Yes | Supabase project URL (`https://<ref>.supabase.co`). |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anon key (used for `auth.get_user` and per-token admin client). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (used by `POST /api/rsvp` to insert rows). |
+| `ADMIN_USER_ID` | Yes | Supabase Auth UUID of the single admin user allowed on `/api/admin/*`. |
+| `FRONTEND_URL` | Yes | Allowed CORS origin (`https://melissalevi.page` in production; defaults to `http://localhost:5173`). |
+| `TELEGRAM_BOT_TOKEN` | Optional | Bot token from `@BotFather` for RSVP & 500 alerts. |
+| `TELEGRAM_CHAT_ID` | Optional | Target chat/group ID for Telegram alerts. |
+
+> **Note**: `backend/render.yaml` is only used during initial Render Blueprint provisioning. For the live Render service (`melissa-levi-backend`), environment variables must be updated directly in the Render Dashboard.
+
+### GitHub Actions Secrets (`Settings → Secrets and variables → Actions`)
+
+| Secret | Used By |
+|---|---|
+| `RENDER_DEPLOY_HOOK_URL` | `backend-deploy.yml` |
+| `VERCEL_TOKEN` | `frontend-deploy.yml` |
+| `VERCEL_ORG_ID` | `frontend-deploy.yml` |
+| `VERCEL_PROJECT_ID` | `frontend-deploy.yml` |
+| `TELEGRAM_BOT_TOKEN` | All 3 workflows |
+| `TELEGRAM_CHAT_ID` | All 3 workflows |
+
+---
+
+## 9. Local Development & Testing
+
+### Quick Start (Recommended)
+
+Run both servers simultaneously from the repository root:
+
+```bash
+./dev.sh
+```
+
+- **Frontend**: `http://localhost:5173` (proxies `/api/*` → `http://localhost:8000`)
+- **Backend**: `http://localhost:8000`
+- **Interactive API Docs**: `http://localhost:8000/docs`
+
+### Manual Start
+
+```bash
+# Terminal 1 — Backend
+cd backend
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python3 -m uvicorn main:app --reload --port 8000
+
+# Terminal 2 — Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Local Tests & Validation
+
+```bash
+# Backend smoke & unit tests
+cd backend && source venv/bin/activate
+python test_imports.py      # Verifies all modules import cleanly
+python test_auth.py         # Unit tests admin auth (200/401/403) with mocks
+python test_telegram.py     # Sends a real test message (requires backend/.env)
+
+# Frontend lint & production build
+cd frontend
+npm run lint
+npm run build
+```
+
+---
+
+## 10. CI/CD & Production Deployment
+
+Deployments are automated via GitHub Actions on pushes to `main`:
+
+1. **Backend (`.github/workflows/backend-deploy.yml`)** — triggers on `backend/**`:
+   - `test` job (push & PR): Python 3.12 → installs `requirements.txt` → runs `python test_imports.py` → sends Telegram status.
+   - `deploy-to-production` job (push to `main` only): validates `RENDER_DEPLOY_HOOK_URL` → triggers Render deploy via `curl --fail -X POST` → sends Telegram status.
+2. **Frontend (`.github/workflows/frontend-deploy.yml`)** — triggers on `frontend/**`:
+   - `test` job (push & PR): Node 20 → `npm ci` → `npm run lint` (`continue-on-error: true`) → `npm run build` → sends Telegram status.
+   - `deploy` job (push to `main` only): installs `vercel@latest` → runs `vercel pull`, `vercel build --prod`, and `vercel deploy --prebuilt --prod` from the repo root → sends Telegram status.
+3. **Telegram Integration (`.github/workflows/test-telegram-integration.yml`)** — triggers on `backend/services/telegram.py` or manual `workflow_dispatch`:
+   - Runs `backend/test_telegram.py` and posts pass/fail status to Telegram.
+
+### DNS & Hosting Summary
+
+- **Frontend (Vercel)**: Custom domain `melissalevi.page` (A record `@ → 76.76.21.21`, CNAME `www → cname.vercel-dns.com.`), automatic Let's Encrypt SSL.
+- **Backend (Render)**: Free Web Service (`melissa-levi-backend.onrender.com`), start command `uvicorn main:app --host 0.0.0.0 --port $PORT`. Note: Render's free tier spins down after inactivity (cold-start latency on first request).
+
+---
+
+## 11. Known Issues, Security Advisories & Backlog
+
+### Critical Security Advisory
+- **Exposed Telegram Bot Token in Git History**: Earlier documentation commits exposed the real `TELEGRAM_BOT_TOKEN` in plaintext. Even though those files have been removed from the working tree, the token remains in Git history and **must be rotated** via `@BotFather` (`/revoke`), then updated in Render, GitHub Actions Secrets, and local `backend/.env`.
+
+### Active Bugs & Content Drift
+1. **Broken Venue Image Path (`frontend/src/data/wedding.js:18`)**: `wedding.img.venue` is set to a local absolute filesystem path (`/home/gustavoiaf/Desktop/folders/melissa&levi/resources/bassi-eventos-174_13_256569-165672380899799.webp`). In production this fails to load and falls back to the `"M & L"` placeholder. Move the asset into `frontend/public/` or import it via Vite.
+2. **Venue & Schedule Drift in `WhenWhere.jsx`**: `WhenWhere.jsx` still displays `"A ser definido"` for the venue and `16h00` for the ceremony in `Schedule()`, whereas `wedding.js` already specifies `Bassi Eventos` and `Cerimônia · 17h`.
+
+### Maintenance & CI Improvements
+- **Run `test_auth.py` in CI**: `backend-deploy.yml` currently runs only `test_imports.py`; add `python test_auth.py`.
+- **Enforce Frontend Linting**: `frontend-deploy.yml` has `continue-on-error: true` on `npm run lint`.
+- **Upgrade GitHub Actions**: Replace deprecated `actions/checkout@v3`, `actions/setup-python@v4`, and `actions/setup-node@v3` with current versions (`v4`/`v5`).
+- **Repository Hygiene**: Update `.gitignore` to ignore `**/__pycache__/` and `**/*.pyc` (nested `.pyc` files in `backend/{models,routers,services}/__pycache__/` are currently tracked in Git), and add a `backend/.env.example` template.
+
+### Planned Features (`todo.txt`)
+- Allow entering names of accompanying guests.
+- Prevent duplicate guest name conflicts.
+- Send final confirmation emails 1 month before the wedding.
+- Add a wedding countdown timer.

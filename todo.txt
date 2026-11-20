@@ -1,0 +1,4 @@
+- Fazer com que seja possivel colocar o nome dos candidatos
+- Evitar conflitos de nomes iguais
+- Mandar email 1 mes antes para confirmação final
+- Contagem regressiva
