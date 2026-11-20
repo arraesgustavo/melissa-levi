@@ -204,6 +204,21 @@ def test_full_rsvp_lifecycle():
         assert resp.status_code == 422
         print("✅ mismatched guest_names length rejected with 422")
 
+        # 3b. More than 4 adult guests -> 422
+        resp = client.post(
+            "/api/rsvp",
+            json={
+                "name": "Ana Silva",
+                "email": "ana@example.com",
+                "phone": "(12) 99999-8888",
+                "attending": "yes",
+                "guests": 5,
+                "guest_names": ["A", "B", "C", "D", "E"],
+            },
+        )
+        assert resp.status_code == 422
+        print("✅ more than 4 adult guests rejected with 422")
+
         # 4. Valid RSVP with 2 adults (>7 years) + 2 children (<=7 years, independent count)
         resp = client.post(
             "/api/rsvp",

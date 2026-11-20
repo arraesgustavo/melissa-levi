@@ -12,7 +12,7 @@ class RSVPSubmission(BaseModel):
     email: EmailStr
     phone: str
     attending: Literal["yes", "no"]
-    guests: int = Field(ge=0, le=20)
+    guests: int = Field(ge=0, le=4)
     guest_names: list[str] = Field(default_factory=list)
     children_count: int = Field(default=0, ge=0, le=20)
     children_names: list[str] = Field(default_factory=list)
@@ -57,8 +57,8 @@ class RSVPSubmission(BaseModel):
             self.children_names = []
             return self
 
-        if self.guests < 1:
-            raise ValueError("Informe pelo menos 1 convidado acima de 7 anos.")
+        if self.guests < 1 or self.guests > 4:
+            raise ValueError("Informe entre 1 e 4 convidados acima de 7 anos.")
 
         cleaned_guests = _clean_names(self.guest_names)
         if len(cleaned_guests) != self.guests:

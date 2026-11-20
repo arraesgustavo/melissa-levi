@@ -7,9 +7,15 @@ alter table public.rsvps
   add column if not exists children_count int not null default 0 check (children_count >= 0),
   add column if not exists manage_token uuid not null default gen_random_uuid();
 
--- Ensure guests count allows 0 (for attending = 'no' or when all individual guests are removed)
+-- Ensure guests count allows 0..4 (for attending = 'no', removals, and max 4 guests > 7 years)
 alter table public.rsvps
   alter column guests set default 0;
+
+alter table public.rsvps
+  drop constraint if exists chk_rsvps_guests_max_4;
+
+alter table public.rsvps
+  add constraint chk_rsvps_guests_max_4 check (guests >= 0 and guests <= 4);
 
 -- Normalize existing emails to lowercase + trimmed before creating unique index
 update public.rsvps

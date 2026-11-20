@@ -28,7 +28,7 @@ import { Eyebrow, Ornament, Reveal } from '../components';
 import { COLORS, FONTS } from '../theme';
 import { wedding } from '../data/wedding';
 
-const GUEST_OPTIONS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+const GUEST_OPTIONS = ['1', '2', '3', '4'];
 const CHILD_OPTIONS = ['0', '1', '2', '3', '4', '5', '6', '7', '8'];
 
 function Field(props) {
@@ -580,8 +580,8 @@ export function RSVP() {
 
     if (f.attending === 'yes') {
       const guestsNum = parseInt(f.guests, 10);
-      if (!guestsNum || guestsNum < 1) {
-        e.guests = 'Selecione o número de convidados acima de 7 anos.';
+      if (!guestsNum || guestsNum < 1 || guestsNum > 4) {
+        e.guests = 'Selecione entre 1 e 4 convidados acima de 7 anos.';
       } else {
         for (let i = 0; i < guestsNum; i += 1) {
           if (!f.guestNames[i] || !f.guestNames[i].trim()) {
@@ -813,7 +813,7 @@ export function RSVP() {
                         value={f.guests}
                         onChange={handleGuestsCountChange}
                         error={!!err.guests}
-                        helperText={err.guests || 'Informe apenas pessoas com mais de 7 anos.'}
+                        helperText={err.guests || 'Informe apenas pessoas com mais de 7 anos (máximo de 4 por confirmação).'}
                       >
                         {GUEST_OPTIONS.map((n) => (
                           <MenuItem key={n} value={n}>
