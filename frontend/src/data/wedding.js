@@ -1,3 +1,4 @@
+import heroBackground from '../assets/background.webp';
 import photo1 from '../assets/photo1.jpeg';
 import photo2 from '../assets/photo2.jpeg';
 
@@ -21,7 +22,7 @@ export const wedding = {
   // Substitua pela chave PIX real (CPF, e-mail, telefone ou chave aleatória)
   pixKey: 'CHAVE-PIX-A-DEFINIR',
   img: {
-    hero: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=2000&q=80&auto=format&fit=crop',
+    hero: heroBackground,
     venue: photo1,
     venue1: photo1,
     venue2: photo2,

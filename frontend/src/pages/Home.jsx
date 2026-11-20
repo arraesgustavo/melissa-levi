@@ -43,17 +43,32 @@ function Hero() {
         justifyContent: 'center',
         textAlign: 'center',
         overflow: 'hidden',
+        backgroundColor: '#FAF7F1',
       }}
     >
-      <FadeImage src={wedding.img.hero} alt="Melissa e Levi" position="center 40%" sx={{ position: 'absolute', inset: 0 }} />
+      <FadeImage
+        src={wedding.img.hero}
+        alt="Melissa e Levi"
+        position="center"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          backgroundColor: 'transparent',
+          mixBlendMode: 'multiply',
+        }}
+      />
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(180deg, rgba(20,18,16,.46) 0%, rgba(20,18,16,.12) 32%, rgba(20,18,16,.22) 70%, rgba(20,18,16,.5) 100%)',
+          background: [
+            'radial-gradient(ellipse 68% 54% at 50% 50%, rgba(250,247,241,.92) 0%, rgba(250,247,241,.76) 46%, rgba(250,247,241,.22) 80%, rgba(250,247,241,0) 100%)',
+            'linear-gradient(180deg, rgba(250,247,241,.84) 0%, rgba(250,247,241,.28) 16%, rgba(250,247,241,0) 30%)',
+            `linear-gradient(0deg, ${COLORS.cream} 0%, rgba(244,238,227,.55) 9%, rgba(244,238,227,0) 22%)`,
+          ].join(', '),
         }}
       />
-      <Box sx={{ position: 'relative', color: '#F7F2E9', px: 3, animation: 'revealUp 1.1s cubic-bezier(.16,1,.3,1) .1s both' }}>
+      <Box sx={{ position: 'relative', color: COLORS.ink, px: 3, animation: 'revealUp 1.1s cubic-bezier(.16,1,.3,1) .1s both' }}>
         <Typography
           component="div"
           sx={{
@@ -62,11 +77,11 @@ function Hero() {
             textTransform: 'uppercase',
             letterSpacing: '0.5em',
             fontSize: { xs: '0.66rem', md: '0.78rem' },
-            color: '#ffffff',
-            opacity: 0.92,
+            color: COLORS.ink,
+            opacity: 0.78,
             mb: { xs: 2.5, md: 3.5 },
             pl: '0.5em',
-            textShadow: '0 1px 18px rgba(0,0,0,.4)',
+            textShadow: '0 1px 16px rgba(250,247,241,.9)',
           }}
         >
           — {wedding.dateShort} —
@@ -77,7 +92,8 @@ function Hero() {
             fontSize: { xs: '4.1rem', sm: '5.5rem', md: '8rem' },
             fontWeight: 300,
             lineHeight: 0.98,
-            textShadow: '0 2px 40px rgba(0,0,0,.25)',
+            color: COLORS.ink,
+            textShadow: '0 2px 28px rgba(250,247,241,.95)',
           }}
         >
           {wedding.bride}
@@ -90,14 +106,15 @@ function Hero() {
           component="div"
           sx={{
             fontFamily: FONTS.SANS,
-            fontWeight: 300,
+            fontWeight: 400,
             letterSpacing: '0.34em',
             textTransform: 'uppercase',
             fontSize: { xs: '0.7rem', md: '0.8rem' },
-            color: '#ffffff',
+            color: COLORS.ink,
             mt: { xs: 3, md: 4 },
-            opacity: 0.95,
+            opacity: 0.82,
             pl: '0.34em',
+            textShadow: '0 1px 16px rgba(250,247,241,.9)',
           }}
         >
           Vamos nos casar
@@ -111,8 +128,8 @@ function Hero() {
           transform: 'translateX(-50%)',
           width: '1px',
           height: 56,
-          background: 'linear-gradient(#F7F2E9, transparent)',
-          opacity: 0.7,
+          background: `linear-gradient(${COLORS.ink}, transparent)`,
+          opacity: 0.45,
         }}
       />
     </Box>

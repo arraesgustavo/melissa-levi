@@ -79,7 +79,7 @@ export function NavBar() {
 
   const isHome = location.pathname === '/';
   const overHero = isHome && !scrolled;
-  const fg = overHero ? '#F7F2E9' : COLORS.ink;
+  const fg = COLORS.ink;
 
   const go = (path) => {
     setOpen(false);
