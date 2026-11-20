@@ -44,7 +44,7 @@ Working context and invariants for AI agents operating in the **Melissa & Levi**
 | Backend API | `backend/routers/{rsvp,admin}.py` | `POST /api/rsvp` (201), `GET /api/admin/rsvps` (admin JWT) |
 | Backend Services | `backend/services/{auth,supabase,telegram}.py` | JWT admin guard (`401`/`403`), Supabase clients, Telegram Bot API |
 | Database | `supabase/migrations/001_create_rsvps.sql`, `002_admin_rls.sql` | `public.rsvps` schema, `idx_rsvps_email`, RLS policies |
-| CI/CD | `.github/workflows/{backend-deploy,frontend-deploy,test-telegram-integration}.yml` | Import test + Render webhook, lint/build + `vercel@latest` prebuilt deploy |
+| CI/CD | `.github/workflows/{backend-deploy,frontend-deploy}.yml` | Import test + Render webhook, lint/build + `vercel@latest` prebuilt deploy |
 
 ## 4. Coding & Maintenance Conventions
 

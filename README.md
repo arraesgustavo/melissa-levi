@@ -286,8 +286,6 @@ RLS is enabled on `public.rsvps` and `public.rsvp_guests`:
 | `VERCEL_TOKEN` | `frontend-deploy.yml` |
 | `VERCEL_ORG_ID` | `frontend-deploy.yml` |
 | `VERCEL_PROJECT_ID` | `frontend-deploy.yml` |
-| `TELEGRAM_BOT_TOKEN` | All 3 workflows |
-| `TELEGRAM_CHAT_ID` | All 3 workflows |
 
 ---
 
@@ -343,13 +341,11 @@ npm run build
 Deployments are automated via GitHub Actions on pushes to `main`:
 
 1. **Backend (`.github/workflows/backend-deploy.yml`)** — triggers on `backend/**`:
-   - `test` job (push & PR): Python 3.12 → installs `requirements.txt` → runs `python test_imports.py` → sends Telegram status.
-   - `deploy-to-production` job (push to `main` only): validates `RENDER_DEPLOY_HOOK_URL` → triggers Render deploy via `curl --fail -X POST` → sends Telegram status.
+   - `test` job (push & PR): Python 3.12 → installs `requirements.txt` → runs `python test_imports.py`.
+   - `deploy-to-production` job (push to `main` only): validates `RENDER_DEPLOY_HOOK_URL` → triggers Render deploy via `curl --fail -X POST`.
 2. **Frontend (`.github/workflows/frontend-deploy.yml`)** — triggers on `frontend/**`:
-   - `test` job (push & PR): Node 20 → `npm ci` → `npm run lint` (`continue-on-error: true`) → `npm run build` → sends Telegram status.
-   - `deploy` job (push to `main` only): installs `vercel@latest` → runs `vercel pull`, `vercel build --prod`, and `vercel deploy --prebuilt --prod` from the repo root → sends Telegram status.
-3. **Telegram Integration (`.github/workflows/test-telegram-integration.yml`)** — triggers on `backend/services/telegram.py` or manual `workflow_dispatch`:
-   - Runs `backend/test_telegram.py` and posts pass/fail status to Telegram.
+   - `test` job (push & PR): Node 20 → `npm ci` → `npm run lint` (`continue-on-error: true`) → `npm run build`.
+   - `deploy` job (push to `main` only): installs `vercel@latest` → runs `vercel pull`, `vercel build --prod`, and `vercel deploy --prebuilt --prod` from the repo root.
 
 ### DNS & Hosting Summary
 

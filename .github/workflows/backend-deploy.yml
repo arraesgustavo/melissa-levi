@@ -28,35 +28,12 @@ jobs:
     - name: Run import tests
       run: cd backend && python test_imports.py
 
-    - name: Notify Telegram - Tests Passed
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: "✅ Backend tests passed! Ready to deploy."
-      if: success()
-
-    - name: Notify Telegram - Tests Failed
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: "❌ Backend tests failed! Check GitHub Actions."
-      if: failure()
-
   deploy-to-production:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
     - uses: actions/checkout@v3
-
-    - name: Notify Telegram - Deploy Started
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: "🚀 Backend deployment started (commit: ${{ github.sha }})"
 
     - name: Trigger Render Webhook Deploy
       shell: bash
@@ -74,22 +51,3 @@ jobs:
         fi
 
         curl --fail --silent --show-error -X POST "$render_hook_url"
-
-    - name: Notify Telegram - Deploy Success
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ✅ Backend deployed successfully!
-          Commit: ${{ github.sha }}
-          Branch: main
-      if: success()
-
-    - name: Notify Telegram - Deploy Failed
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_CHAT_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: "❌ Backend deployment failed!"
-      if: failure()

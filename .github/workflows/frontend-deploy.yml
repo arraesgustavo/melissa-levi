@@ -28,22 +28,6 @@ jobs:
       - name: Build
         run: cd frontend && npm run build
 
-      - name: Notify Telegram - Tests Passed
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "✅ Frontend tests passed! Ready to deploy."
-        if: success()
-
-      - name: Notify Telegram - Build Failed
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "❌ Frontend build failed! Check GitHub Actions."
-        if: failure()
-
   deploy:
     needs: test
     runs-on: ubuntu-latest
@@ -58,13 +42,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Notify Telegram - Deploy Started
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "🎨 Frontend deployment started"
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
@@ -76,19 +53,3 @@ jobs:
 
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Notify Telegram - Deploy Success
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "🎨 Frontend deployed successfully! 🌐 https://melissalevi.page"
-        if: success()
-
-      - name: Notify Telegram - Deploy Failed
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "❌ Frontend deployment failed"
-        if: failure()
