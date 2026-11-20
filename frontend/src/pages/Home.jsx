@@ -1,4 +1,7 @@
-import { Box, Container, Typography, Grid, Button } from '@mui/material';
+import { useState } from 'react';
+import { Box, Container, Typography, Grid, Button, Stack, Snackbar, Alert } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
 import { Eyebrow, Ornament, FadeImage, Reveal } from '../components';
 import { COLORS, FONTS } from '../theme';
@@ -9,7 +12,26 @@ function go(navigate, path) {
   window.scrollTo({ top: 0 });
 }
 
-function Hero({ navigate }) {
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(textarea);
+  if (!ok) {
+    throw new Error('Clipboard copy failed');
+  }
+}
+
+function Hero() {
   return (
     <Box
       sx={{
@@ -123,35 +145,42 @@ function Invitation() {
         <Reveal delay={160}>
           <Ornament />
         </Reveal>
-        <Reveal delay={200}>
-          <Typography variant="body1" sx={{ maxWidth: 560, mx: 'auto' }}>
-            Começaremos com uma cerimônia no jardim, e em seguida reuniremos todos para uma noite de jantar, dança e muita celebração.
-          </Typography>
-        </Reveal>
       </Container>
     </Box>
   );
 }
 
-function WhenWhereStrip({ navigate }) {
-  const Col = ({ label, title, lines, href }) => (
-    <Grid item xs={12} md={6}>
-      <Reveal sx={{ textAlign: 'center', px: { xs: 0, md: 4 } }}>
+function InfoColumn({ label, title, lines, onAction }) {
+  return (
+    <Grid size={{ xs: 12, md: 6 }}>
+      <Reveal
+        sx={{
+          textAlign: 'center',
+          px: { xs: 1, md: 5 },
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
         <Eyebrow>{label}</Eyebrow>
-        <Typography variant="h3" sx={{ fontSize: { xs: '2rem', md: '2.6rem' }, color: COLORS.ink, mb: 2 }}>
+        <Typography variant="h3" sx={{ fontSize: { xs: '2rem', md: '2.6rem' }, color: COLORS.ink, mb: 2, textWrap: 'balance' }}>
           {title}
         </Typography>
-        {lines.map((l, i) => (
-          <Typography key={i} variant="body1" sx={{ mb: 0.2 }}>
-            {l}
+        {lines.map((line, i) => (
+          <Typography key={i} variant="body1" sx={{ mb: 0.25, maxWidth: 420 }}>
+            {line}
           </Typography>
         ))}
-        <Button variant="outlined" sx={{ mt: 4 }} onClick={() => go(navigate, '/quando-onde')}>
+        <Button variant="outlined" sx={{ mt: 4 }} onClick={onAction}>
           Ver Detalhes
         </Button>
       </Reveal>
     </Grid>
   );
+}
+
+function WhenWhereStrip({ navigate }) {
+  const goToDetails = () => go(navigate, '/quando-onde');
 
   return (
     <Box sx={{ backgroundColor: COLORS.creamDeep, py: { xs: 11, md: 16 } }}>
@@ -160,6 +189,7 @@ function WhenWhereStrip({ navigate }) {
           container
           spacing={{ xs: 8, md: 4 }}
           alignItems="flex-start"
+          justifyContent="center"
           sx={{
             position: 'relative',
             '&::before': {
@@ -174,92 +204,144 @@ function WhenWhereStrip({ navigate }) {
             },
           }}
         >
-          <Col label="Quando" title={wedding.dateLong} lines={[wedding.ceremony, wedding.reception]} />
-          <Col label="Onde" title={wedding.venue} lines={[wedding.address1, wedding.address2]} />
+          <InfoColumn
+            label="Quando"
+            title={wedding.dateLong}
+            lines={[wedding.ceremony]}
+            onAction={goToDetails}
+          />
+          <InfoColumn
+            label="Onde"
+            title={wedding.venue}
+            lines={[wedding.address1, wedding.address2]}
+            onAction={goToDetails}
+          />
         </Grid>
       </Container>
     </Box>
   );
 }
 
-function Accommodations({ navigate }) {
-  return (
-    <Box sx={{ py: { xs: 11, md: 18 } }}>
-      <Container maxWidth="lg">
-        <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <Reveal>
-              <FadeImage src={wedding.img.venue} alt="Local do evento" ratio="4 / 5" sx={{ boxShadow: '0 30px 60px -40px rgba(28,27,25,.5)' }} />
-            </Reveal>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Reveal delay={120} sx={{ pl: { md: 4 } }}>
-              <Eyebrow>Hospedagem</Eyebrow>
-              <Typography variant="h2" sx={{ fontSize: { xs: '2.4rem', md: '3.4rem' }, color: COLORS.ink, mb: 3 }}>
-                A ser definido
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                Em breve divulgaremos as opções de hospedagem recomendadas para nossos convidados em São José dos Campos. Fique de olho — as informações serão atualizadas aqui.
-              </Typography>
-              <Typography variant="body2" sx={{ color: COLORS.ink, letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: '0.72rem', mb: 4 }}>
-                São José dos Campos · São Paulo, Brasil
-              </Typography>
-              <Button variant="outlined" onClick={() => go(navigate, '/quando-onde')}>
-                Mais Detalhes
-              </Button>
-            </Reveal>
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
-  );
-}
+const registryActionSx = {
+  border: `1px solid ${COLORS.ink}`,
+  px: { xs: 3.5, md: 5 },
+  py: { xs: 1.8, md: 2.2 },
+  minHeight: 48,
+  minWidth: { xs: '100%', sm: 240 },
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 1.2,
+  fontFamily: FONTS.SANS,
+  fontWeight: 400,
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+  fontSize: '0.72rem',
+  color: COLORS.ink,
+  backgroundColor: 'transparent',
+  cursor: 'pointer',
+  textDecoration: 'none',
+  transition: 'all .35s ease',
+  WebkitTapHighlightColor: 'transparent',
+  touchAction: 'manipulation',
+  '&:hover': { backgroundColor: COLORS.ink, color: COLORS.cream },
+};
 
-function Registry({ navigate }) {
+function Registry() {
+  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState({ open: false, severity: 'success', message: '' });
+
+  const handleCopyPix = async () => {
+    try {
+      await copyTextToClipboard(wedding.pixKey);
+      setCopied(true);
+      setToast({
+        open: true,
+        severity: 'success',
+        message: 'Chave PIX copiada com sucesso!',
+      });
+      window.setTimeout(() => setCopied(false), 3000);
+    } catch {
+      setToast({
+        open: true,
+        severity: 'error',
+        message: 'Não foi possível copiar a chave PIX automaticamente.',
+      });
+    }
+  };
+
   return (
-    <Box sx={{ backgroundColor: COLORS.creamDeep, py: { xs: 11, md: 18 }, textAlign: 'center' }}>
-      <Container maxWidth="sm">
+    <Box sx={{ backgroundColor: COLORS.cream, py: { xs: 11, md: 18 }, textAlign: 'center' }}>
+      <Container maxWidth="md">
         <Reveal>
           <Eyebrow>Lista de Presentes</Eyebrow>
         </Reveal>
         <Reveal delay={80}>
           <Typography variant="h2" sx={{ fontSize: { xs: '2.4rem', md: '3.4rem' }, color: COLORS.ink, mb: 3 }}>
-            Sua presença é o presente
+            Sua presença é o nosso maior presente
           </Typography>
         </Reveal>
         <Reveal delay={140}>
-          <Typography variant="body1" sx={{ maxWidth: 540, mx: 'auto', mb: 7 }}>
-            Muitos de vocês virão de longe para celebrar conosco, e isso já é um presente enorme. Se ainda assim quiserem nos presentear, preparamos uma lista com muito carinho na Amazon.
+          <Typography variant="body1" sx={{ maxWidth: 580, mx: 'auto', mb: 6 }}>
+            Celebrar esse momento ao lado de quem amamos já significa tudo para nós. Se desejar nos abençoar com um presente, preparamos nossa lista na Amazon e também disponibilizamos a opção de contribuição via PIX.
           </Typography>
         </Reveal>
         <Reveal delay={200}>
-          <Box component="a" href={wedding.registryUrl} target="_blank" rel="noopener noreferrer" sx={{ display: 'inline-block', textDecoration: 'none' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2.5}
+            justifyContent="center"
+            alignItems="center"
+            sx={{ maxWidth: 560, mx: 'auto' }}
+          >
             <Box
-              sx={{
-                border: `1px solid ${COLORS.ink}`,
-                px: { xs: 4, md: 7 },
-                py: { xs: 1.8, md: 2.5 },
-                minHeight: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: FONTS.SANS,
-                fontWeight: 400,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                fontSize: '0.72rem',
-                color: COLORS.ink,
-                transition: 'all .4s ease',
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-                '&:hover': { backgroundColor: COLORS.ink, color: COLORS.cream },
-              }}
+              component="a"
+              href={wedding.registryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={registryActionSx}
             >
               Ver Lista na Amazon
             </Box>
-          </Box>
+            <Box
+              component="button"
+              type="button"
+              onClick={handleCopyPix}
+              sx={{
+                ...registryActionSx,
+                backgroundColor: copied ? COLORS.ink : 'transparent',
+                color: copied ? COLORS.cream : COLORS.ink,
+              }}
+            >
+              {copied ? <CheckIcon sx={{ fontSize: 16 }} /> : <ContentCopyIcon sx={{ fontSize: 16 }} />}
+              {copied ? 'Chave PIX Copiada' : 'Presentear via PIX'}
+            </Box>
+          </Stack>
         </Reveal>
       </Container>
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3500}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 0,
+            backgroundColor: toast.severity === 'success' ? COLORS.ink : '#8c2f2f',
+            color: COLORS.cream,
+            fontFamily: FONTS.SANS,
+            letterSpacing: '0.04em',
+            '& .MuiAlert-icon': { color: COLORS.cream },
+          }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
@@ -288,11 +370,10 @@ export function Home() {
 
   return (
     <Box>
-      <Hero navigate={navigate} />
+      <Hero />
       <Invitation />
       <WhenWhereStrip navigate={navigate} />
-      <Accommodations navigate={navigate} />
-      <Registry navigate={navigate} />
+      <Registry />
       <ClosingCTA navigate={navigate} />
     </Box>
   );

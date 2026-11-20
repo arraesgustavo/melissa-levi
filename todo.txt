@@ -1,4 +1,44 @@
-- Fazer com que seja possivel colocar o nome dos candidatos
-- Evitar conflitos de nomes iguais
-- Mandar email 1 mes antes para confirmação final
+- Fazer com que seja possivel colocar o nome dos convidados [ ]
+- Evitar conflitos de nomes iguais [ ]
+- Mandar email 1 mes antes para confirmação final [ ] 
+    - Confirmação até 11.05.2027
 - Contagem regressiva
+
+
+Cores: Azul (se precisar, rosa, laranja e amarelo)
+
+(HOME PAGE)
+[seção quando]
+- Domingo
+Cerimona 15hr
+--Sem Recepção · 18h — 23h--
+[seção onde]
+Centralizar e não tem foto aqui
+[Seção hospedagem]
+Tirar essa seção completamente
+[seção Lista de Presentes]
+Colocar mais um botão de pix que copia a chave direto e da uma notificação e trocar o texto
+
+(PAGINA /quando-onde)
+Colocar o Onde e colocar as fotos + as edições acima
+Coloque as fotos (photo1.jpeg & photo2.jpeg)
+Tirar a parte de hospedagem
+Colocar informações sobre estacionamento (terá estacionamento no local)
+Colocar a frase "A cerimônia e a recepção serão realizadas no Bassi Eventos"
+
+(PAGINA /rsvp)
+[ATUALIZAR O BANCO DE DADOS E O BACKEND TAMBEM]
+- Conseguir tirar o nome dela de confirmação de alguma forma
+- Mandar um email de confirmação tbm
+- Possibilidade de colocar o nome dos convidados 
+- No numero de convidados, colocar aviso para cadastrar apenas acima de sete anos
+- Outro campo para cadastar criança 
+- Tirar preferencia de prato
+- Tirar restrição alimentar
+- Tirar pedido musical
+- Colocar campo de numero de telefone
+- Nome, Email, telefone n de condidado obrigatorio
+- Uma inscrição por email
+
+(TELEGRAM)
+- Toda vez que alguem se inscrever, notifica pelo telegram

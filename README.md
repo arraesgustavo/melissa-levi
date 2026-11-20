@@ -166,20 +166,26 @@ The repository's Git history reveals several critical design decisions and produ
   - `Ornament.jsx`: Horizontal hairline divider with rotated diamond.
   - `FadeImage.jsx`: Image wrapper with fade/scale transition on load and an `"M & L"` monogram fallback on load failure.
   - `Reveal.jsx`: Scroll-triggered entrance animation using `IntersectionObserver` with a passive scroll listener fallback.
-- **`pages/Home.jsx`**: Composes `Hero`, `Invitation`, `WhenWhereStrip`, `Accommodations`, `Registry` (Amazon link), and `ClosingCTA`.
-- **`pages/WhenWhere.jsx`**: Event date/venue detail blocks, timeline (`Schedule`), and accommodations notice.
-- **`pages/RSVP.jsx`**: Controlled form (`name`, `email`, `attending`, `guests`, `meal`, `dietary`, `song`, `note`). Conditionally renders guest count, meal preference (required when `attending === 'yes'`), dietary notes, and song request. Displays `ConfirmCard` on confirmed submission.
-- **`pages/Admin.jsx`**: Subscribes to `supabase.auth.onAuthStateChange`, renders `LoginForm` when unauthenticated, fetches `GET /api/admin/rsvps` when authenticated (auto-signing out on `401`), and displays rows in MUI `DataGrid` with toolbar and default `created_at DESC` sorting.
-- **`data/wedding.js`**: Central static configuration for couple names, event dates (`11.07.2027`), venue (`Bassi Eventos`), address, registry URL, and image sources.
+- **`pages/Home.jsx`**: Composes `Hero`, `Invitation`, `WhenWhereStrip` (`Domingo, 11 de Julho de 2027` · `Cerimônia · 15h` and centered `Onde` without photos), `Registry` (Amazon link + copyable PIX button with Snackbar toast), and `ClosingCTA`. (`Accommodations` section removed.)
+- **`pages/WhenWhere.jsx`**: Event date/time/venue details (centered, with `"A cerimônia e a recepção serão realizadas no Bassi Eventos."` highlight and `"Terá estacionamento no local."`), responsive `Bassi Eventos` gallery (`photo1.jpeg` & `photo2.jpeg`), and RSVP CTA.
+- **`pages/RSVP.jsx`**: Controlled form (`name`, `email`, `phone`, `attending`, `guests` >7 years + individual `guest_names`, independent `children_count` ≤7 years + `children_names`, `note`). Handles HTTP `409` duplicate email rejection, displays `ConfirmCard` with individual guest removal, and supports self-service guest management via `/rsvp?token=<manage_token>`.
+- **`pages/Admin.jsx`**: Subscribes to `supabase.auth.onAuthStateChange`, renders `LoginForm` when unauthenticated, fetches `GET /api/admin/rsvps` when authenticated (auto-signing out on `401`), displays summary stats and MUI `DataGrid` (with phone, adult/child guest names, and a `ManageGuestsDialog` to remove individual guests via `DELETE /api/admin/rsvps/{rsvp_id}/guests/{guest_id}`).
+- **`data/wedding.js`**: Central static configuration for couple names, event dates (`Domingo, 11 de Julho de 2027`, `Cerimônia · 15h`), venue (`Bassi Eventos`), address, parking notice, registry URL, PIX key (`pixKey`), and Vite-bundled venue images (`src/assets/photo1.jpeg`, `photo2.jpeg`).
 
 ### Backend (`backend/`)
 
 - **`main.py`**: Initializes FastAPI (`v1.0.0`), configures `CORSMiddleware` (`localhost`, `localhost:5173`, `localhost:3000`, `FRONTEND_URL`), registers `error_telemetry_middleware` (dispatches HTML-formatted Telegram alerts with a 500-char stack trace on unhandled exceptions), mounts `rsvp_router` and `admin_router`, and exposes `GET /health`.
-- **`models/rsvp.py`**: `RSVPSubmission(BaseModel)` enforcing `name: str`, `email: EmailStr`, `attending: Literal["yes", "no"]`, `guests: Optional[int] = 1`, and optional `meal`, `dietary`, `song`, `note`.
-- **`routers/rsvp.py`**: `POST /api/rsvp` (`201 Created`). Inserts validated payload via `get_service_client()` and fires an async Telegram notification with formatted guest details.
-- **`routers/admin.py`**: `GET /api/admin/rsvps`. Protected by `Depends(get_current_admin)`; queries `rsvps` ordered by `created_at DESC` using `get_client_for_token(token)`.
+- **`models/rsvp.py`**: `RSVPSubmission(BaseModel)` enforcing required `name`, `email`, `phone` (10–15 digits), `attending`, `guests` (>7 years) with matching `guest_names`, independent `children_count` with matching `children_names`, and optional `note`; plus typed response models (`RSVPCreateResponse`, `RSVPManageResponse`, `RemoveGuestResponse`, `GuestItem`).
+- **`routers/rsvp.py`**:
+  - `POST /api/rsvp` (`201 Created` / `409 Conflict` on duplicate email): Inserts into `public.rsvps` and `public.rsvp_guests` via `get_service_client()`, fires an async Telegram alert, and sends a confirmation email with a secure management link.
+  - `GET /api/rsvp/manage/{manage_token}`: Loads an RSVP and its individual guests/children for self-service management.
+  - `DELETE /api/rsvp/manage/{manage_token}/guests/{guest_id}`: Removes a single guest/child, recalculates `guests`/`children_count` (and `attending` if 0 remain), and notifies Telegram.
+- **`routers/admin.py`**:
+  - `GET /api/admin/rsvps`: Protected by `Depends(get_current_admin)`; queries `rsvps` with nested `rsvp_guests(*)` ordered by `created_at DESC` using `get_client_for_token(token)`.
+  - `DELETE /api/admin/rsvps/{rsvp_id}/guests/{guest_id}`: Protected by `Depends(get_current_admin)`; removes an individual guest and updates parent counts under PostgreSQL RLS.
 - **`services/auth.py`**: `get_current_admin` using `HTTPBearer`. Calls `get_client().auth.get_user(token)` (`401` on `AuthApiError`) and checks `user.id == os.getenv("ADMIN_USER_ID")` (`403` otherwise).
 - **`services/supabase.py`**: Manages three access patterns: `get_client()` (cached `anon`), `get_service_client()` (cached `service_role`), and `get_client_for_token(token)` (fresh client per request with user JWT).
+- **`services/email.py`**: Builds and sends HTML + plain-text RSVP confirmation emails via **Resend API** (`RESEND_API_KEY`) or **SMTP fallback** (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`), degrading gracefully without breaking RSVP creation if unconfigured.
 - **`services/telegram.py`**: Async `dispatch_telegram_alert(message, parse_mode="HTML")` and sync wrapper `send_telegram_alert_sync`. Gracefully no-ops with a warning if credentials are missing.
 
 ---
@@ -188,28 +194,44 @@ The repository's Git history reveals several critical design decisions and produ
 
 Managed via SQL migrations in `supabase/migrations/`:
 
-### Table: `public.rsvps` (`001_create_rsvps.sql`)
+### Table: `public.rsvps` (`001` + `002` + `003_rsvp_guests_children_phone_unique_email.sql`)
 
 | Column | Type | Constraints / Default |
 |---|---|---|
 | `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` |
 | `name` | `text` | `NOT NULL` |
-| `email` | `text` | `NOT NULL` (indexed: `idx_rsvps_email`) |
+| `email` | `text` | `NOT NULL`, case-insensitive unique (`uq_rsvps_email_lower`) |
+| `phone` | `text` | Required for new RSVPs (nullable in DDL for historical rows) |
 | `attending` | `text` | `NOT NULL CHECK (attending IN ('yes', 'no'))` |
-| `guests` | `int` | `DEFAULT 1` |
-| `meal` | `text` | Nullable |
-| `dietary` | `text` | Nullable |
-| `song` | `text` | Nullable |
+| `guests` | `int` | `DEFAULT 0` (guests > 7 years) |
+| `children_count` | `int` | `NOT NULL DEFAULT 0 CHECK (children_count >= 0)` (children ≤ 7 years) |
+| `manage_token` | `uuid` | `NOT NULL DEFAULT gen_random_uuid()` (unique: `uq_rsvps_manage_token`) |
+| `meal`, `dietary`, `song` | `text` | Legacy nullable columns preserved for historical data |
 | `note` | `text` | Nullable |
 | `created_at` | `timestamptz` | `DEFAULT now()` |
 
-### Effective Row Level Security Policies (`001` + `002_admin_rls.sql`)
+### Table: `public.rsvp_guests` (`003_rsvp_guests_children_phone_unique_email.sql`)
 
-RLS is enabled on `public.rsvps`:
+| Column | Type | Constraints / Default |
+|---|---|---|
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` |
+| `rsvp_id` | `uuid` | `NOT NULL REFERENCES public.rsvps(id) ON DELETE CASCADE` (indexed: `idx_rsvp_guests_rsvp_id`) |
+| `full_name` | `text` | `NOT NULL CHECK (length(trim(full_name)) > 0)` |
+| `guest_type` | `text` | `NOT NULL DEFAULT 'adult' CHECK (guest_type IN ('adult', 'child'))` |
+| `is_primary` | `boolean` | `NOT NULL DEFAULT false` |
+| `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` |
 
-- **`"anon insert rsvp"`**: Allows `INSERT` (`WITH CHECK (true)`).
-- **`"admin read all"`**: Allows `SELECT` only `TO authenticated` where `(select auth.uid()) = 'b20dc951-b872-4123-991a-df1e2fb12f01'::uuid`. (Replaced `"anon read all"`, which was dropped in `002_admin_rls.sql`.)
-- **`"service_role full access"`**: Grants full access to `service_role` (used by backend `POST /api/rsvp`).
+### Effective Row Level Security Policies (`001` + `002` + `003`)
+
+RLS is enabled on `public.rsvps` and `public.rsvp_guests`:
+
+- **`public.rsvps`**:
+  - `"anon insert rsvp"`: Allows `INSERT` (`WITH CHECK (true)`).
+  - `"admin read all"` & `"admin update rsvps"`: Allows `SELECT` and `UPDATE` only `TO authenticated` matching the admin UUID.
+  - `"service_role full access"`: Grants full access to `service_role`.
+- **`public.rsvp_guests`**:
+  - `"admin read all guests"` & `"admin delete guests"`: Allows `SELECT` and `DELETE` only `TO authenticated` matching the admin UUID.
+  - `"service_role full access"`: Grants full access to `service_role`.
 
 ---
 
@@ -218,8 +240,11 @@ RLS is enabled on `public.rsvps`:
 | Method | Path | Auth | Status | Description |
 |---|---|---|---|---|
 | `GET` | `/health` | Public | `200` | Health check; returns `{"status": "ok"}`. |
-| `POST` | `/api/rsvp` | Public | `201` | Validates `RSVPSubmission`, saves to `public.rsvps`, sends async Telegram alert; returns `{"status": "ok"}`. |
-| `GET` | `/api/admin/rsvps` | Bearer JWT (Admin) | `200` | Returns JSON array of all rows in `public.rsvps` ordered by `created_at DESC`. Returns `401` on invalid/expired token, `403` on non-admin user. |
+| `POST` | `/api/rsvp` | Public | `201` / `409` | Validates `RSVPSubmission`, enforces unique email (`409`), saves `rsvps` + `rsvp_guests`, sends Telegram alert & confirmation email; returns `{status, id, manage_token, email_sent, guests_list}`. |
+| `GET` | `/api/rsvp/manage/{manage_token}` | Token | `200` / `404` | Returns RSVP details and individual guests/children for the secure `manage_token`. |
+| `DELETE` | `/api/rsvp/manage/{manage_token}/guests/{guest_id}` | Token | `200` / `404` | Removes one individual guest/child from the RSVP, recalculates counts, notifies Telegram, and returns the updated RSVP. |
+| `GET` | `/api/admin/rsvps` | Bearer JWT (Admin) | `200` | Returns all rows in `public.rsvps` with nested `rsvp_guests` ordered by `created_at DESC`. Returns `401`/`403` on auth failure. |
+| `DELETE` | `/api/admin/rsvps/{rsvp_id}/guests/{guest_id}` | Bearer JWT (Admin) | `200` / `404` | Removes one individual guest/child under admin RLS and updates parent RSVP counts. |
 
 ---
 
@@ -234,7 +259,7 @@ RLS is enabled on `public.rsvps`:
   - `vite` `^8.0.12`, `eslint` `^10.3.0`
 - **Backend** (Python 3.12 in CI, `backend/requirements.txt`):
   - `fastapi==0.136.3`, `uvicorn==0.49.0`, `pydantic==2.13.4`, `email-validator==2.3.0`
-  - `supabase==2.31.0`, `python-telegram-bot==22.7`, `python-dotenv==1.2.2`
+  - `supabase==2.31.0`, `httpx==0.28.1`, `python-telegram-bot==22.7`, `python-dotenv==1.2.2`
 
 ### Backend Environment Variables (`backend/.env` locally & Render Dashboard in prod)
 
@@ -242,11 +267,14 @@ RLS is enabled on `public.rsvps`:
 |---|---|---|
 | `SUPABASE_URL` | Yes | Supabase project URL (`https://<ref>.supabase.co`). |
 | `SUPABASE_ANON_KEY` | Yes | Supabase anon key (used for `auth.get_user` and per-token admin client). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (used by `POST /api/rsvp` to insert rows). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (used by public RSVP endpoints). |
 | `ADMIN_USER_ID` | Yes | Supabase Auth UUID of the single admin user allowed on `/api/admin/*`. |
-| `FRONTEND_URL` | Yes | Allowed CORS origin (`https://melissalevi.page` in production; defaults to `http://localhost:5173`). |
+| `FRONTEND_URL` | Yes | Allowed CORS origin & base URL for RSVP management links (`https://melissalevi.page` in prod). |
 | `TELEGRAM_BOT_TOKEN` | Optional | Bot token from `@BotFather` for RSVP & 500 alerts. |
 | `TELEGRAM_CHAT_ID` | Optional | Target chat/group ID for Telegram alerts. |
+| `RESEND_API_KEY` | Optional | Resend API key for sending RSVP confirmation emails via HTTPS (recommended on Render Free). |
+| `EMAIL_FROM` | Optional | Sender header (e.g., `Melissa & Levi <confirmacao@melissalevi.page>`). |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_USE_TLS` | Optional | Alternative SMTP credentials if `RESEND_API_KEY` is not set. |
 
 > **Note**: `backend/render.yaml` is only used during initial Render Blueprint provisioning. For the live Render service (`melissa-levi-backend`), environment variables must be updated directly in the Render Dashboard.
 
@@ -299,6 +327,7 @@ npm run dev
 cd backend && source venv/bin/activate
 python test_imports.py      # Verifies all modules import cleanly
 python test_auth.py         # Unit tests admin auth (200/401/403) with mocks
+python test_rsvp.py         # Unit & API tests for RSVP validation, duplicate email, guest removal & email
 python test_telegram.py     # Sends a real test message (requires backend/.env)
 
 # Frontend lint & production build
@@ -334,9 +363,10 @@ Deployments are automated via GitHub Actions on pushes to `main`:
 ### Critical Security Advisory
 - **Exposed Telegram Bot Token in Git History**: Earlier documentation commits exposed the real `TELEGRAM_BOT_TOKEN` in plaintext. Even though those files have been removed from the working tree, the token remains in Git history and **must be rotated** via `@BotFather` (`/revoke`), then updated in Render, GitHub Actions Secrets, and local `backend/.env`.
 
-### Active Bugs & Content Drift
-1. **Broken Venue Image Path (`frontend/src/data/wedding.js:18`)**: `wedding.img.venue` is set to a local absolute filesystem path (`/home/gustavoiaf/Desktop/folders/melissa&levi/resources/bassi-eventos-174_13_256569-165672380899799.webp`). In production this fails to load and falls back to the `"M & L"` placeholder. Move the asset into `frontend/public/` or import it via Vite.
-2. **Venue & Schedule Drift in `WhenWhere.jsx`**: `WhenWhere.jsx` still displays `"A ser definido"` for the venue and `16h00` for the ceremony in `Schedule()`, whereas `wedding.js` already specifies `Bassi Eventos` and `Cerimônia · 17h`.
+### Pending Configuration Steps
+1. **Supabase Migration**: Run `supabase/migrations/003_rsvp_guests_children_phone_unique_email.sql` in the Supabase SQL Editor (adds `phone`, `children_count`, `manage_token`, unique email index, and `public.rsvp_guests` table with RLS).
+2. **PIX Key**: Replace the `pixKey` placeholder in `frontend/src/data/wedding.js` with the real PIX key.
+3. **Confirmation Emails (Render)**: Configure `RESEND_API_KEY` + `EMAIL_FROM` (or `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) in Render Dashboard environment variables.
 
 ### Maintenance & CI Improvements
 - **Run `test_auth.py` in CI**: `backend-deploy.yml` currently runs only `test_imports.py`; add `python test_auth.py`.

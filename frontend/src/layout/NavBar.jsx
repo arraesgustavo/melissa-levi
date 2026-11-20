@@ -28,34 +28,11 @@ function Burger({ open }) {
   );
 }
 
-export function NavBar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width:899px)');
-
-  const isHome = location.pathname === '/';
-  const overHero = isHome && !scrolled;
-  const fg = overHero ? '#F7F2E9' : COLORS.ink;
-
-  const go = (path) => {
-    setOpen(false);
-    navigate(path);
-    window.scrollTo({ top: 0 });
-  };
-
-  useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 60);
-    on();
-    window.addEventListener('scroll', on, { passive: true });
-    return () => window.removeEventListener('scroll', on);
-  }, []);
-
-  const NavLink = ({ item, active }) => (
+function NavLink({ item, active, fg, onSelect }) {
+  return (
     <Box
       component="button"
-      onClick={() => go(item.path)}
+      onClick={() => onSelect(item.path)}
       sx={{
         background: 'none',
         border: 'none',
@@ -91,6 +68,31 @@ export function NavBar() {
       {item.label}
     </Box>
   );
+}
+
+export function NavBar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width:899px)');
+
+  const isHome = location.pathname === '/';
+  const overHero = isHome && !scrolled;
+  const fg = overHero ? '#F7F2E9' : COLORS.ink;
+
+  const go = (path) => {
+    setOpen(false);
+    navigate(path);
+    window.scrollTo({ top: 0 });
+  };
+
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 60);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
 
   return (
     <>
@@ -116,7 +118,7 @@ export function NavBar() {
                   <Burger open={open} />
                 </IconButton>
               ) : (
-                <NavLink item={NAV[0]} active={location.pathname === NAV[0].path} />
+                <NavLink item={NAV[0]} active={location.pathname === NAV[0].path} fg={fg} onSelect={go} />
               )}
             </Box>
             <Box
@@ -147,7 +149,7 @@ export function NavBar() {
               {isMobile ? (
                 <Box sx={{ width: 40 }} />
               ) : (
-                <NavLink item={NAV[1]} active={location.pathname === NAV[1].path} />
+                <NavLink item={NAV[1]} active={location.pathname === NAV[1].path} fg={fg} onSelect={go} />
               )}
             </Box>
           </Box>

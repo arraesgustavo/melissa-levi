@@ -18,8 +18,18 @@ def test_main_imports():
 def test_models_imports():
     """Test that models can be imported"""
     try:
-        from models.rsvp import RSVPSubmission
+        from models.rsvp import (
+            RSVPSubmission,
+            RSVPCreateResponse,
+            RSVPManageResponse,
+            RemoveGuestResponse,
+            GuestItem,
+        )
         assert RSVPSubmission is not None
+        assert RSVPCreateResponse is not None
+        assert RSVPManageResponse is not None
+        assert RemoveGuestResponse is not None
+        assert GuestItem is not None
         print("✅ models.rsvp imported successfully")
     except Exception as e:
         print(f"❌ Failed to import models: {e}")
@@ -30,8 +40,11 @@ def test_services_imports():
     try:
         from services.telegram import dispatch_telegram_alert, send_telegram_alert_sync
         from services.supabase import get_client
+        from services.email import send_confirmation_email, build_confirmation_email
         assert dispatch_telegram_alert is not None
         assert get_client is not None
+        assert send_confirmation_email is not None
+        assert build_confirmation_email is not None
         print("✅ services imported successfully")
     except Exception as e:
         print(f"❌ Failed to import services: {e}")
