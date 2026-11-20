@@ -19,8 +19,7 @@ export const wedding = {
   phone: 'A confirmar',
   email: 'contato@melissaelevi.com.br',
   registryUrl: 'https://www.amazon.com.br',
-  // Substitua pela chave PIX real (CPF, e-mail, telefone ou chave aleatória)
-  pixKey: 'CHAVE-PIX-A-DEFINIR',
+  pixKey: '+5512982325595',
   img: {
     hero: heroBackground,
     venue: photo1,

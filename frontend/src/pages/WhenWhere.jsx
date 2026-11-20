@@ -1,9 +1,37 @@
 import { Box, Container, Typography, Grid, Stack, Button } from '@mui/material';
-import LocalParkingOutlinedIcon from '@mui/icons-material/LocalParkingOutlined';
 import { useNavigate } from 'react-router-dom';
 import { Eyebrow, Ornament, FadeImage, Reveal } from '../components';
 import { COLORS, FONTS } from '../theme';
 import { wedding } from '../data/wedding';
+
+function ParkingIcon({ sx }) {
+  return (
+    <Box
+      component="svg"
+      viewBox="0 0 28 28"
+      aria-hidden="true"
+      sx={{ width: 28, height: 28, display: 'block', flexShrink: 0, ...sx }}
+    >
+      <rect
+        x="1.5"
+        y="1.5"
+        width="25"
+        height="25"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M10.5 20V8h4a3.4 3.4 0 0 1 0 6.8h-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="square"
+        strokeLinejoin="round"
+      />
+    </Box>
+  );
+}
 
 function PageHeader({ eyebrow, title, sub }) {
   return (
@@ -129,19 +157,19 @@ function WhenWhereDetails() {
               </Typography>
               <Stack
                 direction="column"
-                spacing={0.8}
+                spacing={1.1}
                 alignItems="center"
                 justifyContent="center"
                 sx={{
                   mx: 'auto',
-                  px: 3,
-                  py: 1.6,
+                  px: 3.5,
+                  py: 2,
                   border: `1px solid ${COLORS.line}`,
                   backgroundColor: COLORS.creamDeep,
                   textAlign: 'center',
                 }}
               >
-                <LocalParkingOutlinedIcon sx={{ fontSize: 22, color: COLORS.accent, display: 'block' }} />
+                <ParkingIcon sx={{ color: COLORS.accent }} />
                 <Typography
                   sx={{
                     fontFamily: FONTS.SANS,

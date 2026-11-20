@@ -361,8 +361,7 @@ Deployments are automated via GitHub Actions on pushes to `main`:
 
 ### Pending Configuration Steps
 1. **Supabase Migration**: Run `supabase/migrations/003_rsvp_guests_children_phone_unique_email.sql` in the Supabase SQL Editor (adds `phone`, `children_count`, `manage_token`, unique email index, and `public.rsvp_guests` table with RLS).
-2. **PIX Key**: Replace the `pixKey` placeholder in `frontend/src/data/wedding.js` with the real PIX key.
-3. **Confirmation Emails (Render)**: Configure `RESEND_API_KEY` + `EMAIL_FROM` (or `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) in Render Dashboard environment variables.
+2. **Confirmation Emails (Render)**: Configure `RESEND_API_KEY` + `EMAIL_FROM` (or `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) in Render Dashboard environment variables.
 
 ### Maintenance & CI Improvements
 - **Run `test_auth.py` in CI**: `backend-deploy.yml` currently runs only `test_imports.py`; add `python test_auth.py`.

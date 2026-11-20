@@ -68,6 +68,6 @@ cd frontend && npm run lint && npm run build
 
 ## 6. Known Issues & Backlog
 
-- **Configuration reminders**: Replace placeholder `pixKey` in `frontend/src/data/wedding.js`, apply `supabase/migrations/003_rsvp_guests_children_phone_unique_email.sql` in Supabase, and set `RESEND_API_KEY` (or `SMTP_*`) + `EMAIL_FROM` on Render for live confirmation emails.
+- **Configuration reminders**: Apply `supabase/migrations/003_rsvp_guests_children_phone_unique_email.sql` in Supabase, and set `RESEND_API_KEY` (or `SMTP_*`) + `EMAIL_FROM` on Render for live confirmation emails.
 - **CI gaps**: `backend-deploy.yml` runs `test_imports.py` but not `test_auth.py`/`test_rsvp.py`; `frontend-deploy.yml` has `continue-on-error: true` on `npm run lint`; workflows still use `actions/checkout@v3`, `actions/setup-python@v4`, `actions/setup-node@v3`.
 - **Backlog (`todo.txt`)**: Duplicate-name conflict prevention, confirmation email 1 month before the wedding, countdown timer.

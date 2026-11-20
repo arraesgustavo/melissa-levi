@@ -1,9 +1,10 @@
-import { Box, Container, Typography, Stack } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { COLORS, FONTS } from '../theme';
 import { wedding } from '../data/wedding';
 
 const NAV = [
+  { label: 'Início', path: '/' },
   { label: 'Quando & Onde', path: '/quando-onde' },
   { label: 'Confirmar Presença', path: '/rsvp' },
 ];
@@ -47,13 +48,30 @@ export function Footer() {
         <Typography variant="body2" sx={{ color: '#A99F8C', mb: 4 }}>
           {wedding.venue} · {wedding.address2}
         </Typography>
-        <Stack direction="row" spacing={4} justifyContent="center" sx={{ mb: 5 }}>
-          {[{ label: 'Início', path: '/' }, ...NAV].map((item) => (
+        <Box
+          component="nav"
+          aria-label="Navegação do rodapé"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr auto 1fr' },
+            alignItems: 'center',
+            justifyItems: 'center',
+            rowGap: 0.5,
+            columnGap: { sm: 4 },
+            mb: 5,
+          }}
+        >
+          {NAV.map((item, index) => (
             <Box
               key={item.path}
               component="button"
+              type="button"
               onClick={() => go(item.path)}
               sx={{
+                justifySelf: {
+                  xs: 'center',
+                  sm: index === 0 ? 'end' : index === 2 ? 'start' : 'center',
+                },
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -63,6 +81,8 @@ export function Footer() {
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 fontSize: '0.68rem',
+                whiteSpace: 'nowrap',
+                textAlign: 'center',
                 opacity: 0.85,
                 '&:hover': { opacity: 1 },
                 minHeight: 44,
@@ -72,19 +92,22 @@ export function Footer() {
                 justifyContent: 'center',
                 WebkitTapHighlightColor: 'transparent',
                 touchAction: 'manipulation',
+                p: 0,
                 px: 1,
+                pl: 'calc(8px + 0.2em)',
               }}
             >
               {item.label}
             </Box>
           ))}
-        </Stack>
+        </Box>
         <Typography
           sx={{
             fontFamily: FONTS.SANS,
             fontWeight: 300,
             fontSize: '0.64rem',
             letterSpacing: '0.14em',
+            pl: '0.14em',
             color: '#7E7565',
             textTransform: 'uppercase',
           }}
