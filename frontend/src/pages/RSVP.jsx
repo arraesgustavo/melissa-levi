@@ -29,7 +29,7 @@ import { COLORS, FONTS } from '../theme';
 import { wedding } from '../data/wedding';
 
 const GUEST_OPTIONS = ['1', '2', '3', '4'];
-const CHILD_OPTIONS = ['0', '1', '2', '3', '4', '5', '6', '7', '8'];
+const CHILD_OPTIONS = ['0', '1', '2', '3', '4'];
 
 function Field(props) {
   return <TextField fullWidth variant="outlined" slotProps={{ inputLabel: { shrink: true } }} {...props} />;
@@ -591,9 +591,13 @@ export function RSVP() {
       }
 
       const childrenNum = parseInt(f.childrenCount, 10) || 0;
-      for (let i = 0; i < childrenNum; i += 1) {
-        if (!f.childrenNames[i] || !f.childrenNames[i].trim()) {
-          e[`childName_${i}`] = `Informe o nome da ${i + 1}ª criança.`;
+      if (childrenNum < 0 || childrenNum > 4) {
+        e.childrenCount = 'O limite é de até 4 crianças por confirmação.';
+      } else {
+        for (let i = 0; i < childrenNum; i += 1) {
+          if (!f.childrenNames[i] || !f.childrenNames[i].trim()) {
+            e[`childName_${i}`] = `Informe o nome da ${i + 1}ª criança.`;
+          }
         }
       }
     }
@@ -870,7 +874,8 @@ export function RSVP() {
                           name="childrenCount"
                           value={f.childrenCount}
                           onChange={handleChildrenCountChange}
-                          helperText="Contagem independente dos convidados acima de 7 anos."
+                          error={!!err.childrenCount}
+                          helperText={err.childrenCount || 'Contagem independente dos convidados acima de 7 anos (máximo de 4 por confirmação).'}
                         >
                           {CHILD_OPTIONS.map((n) => (
                             <MenuItem key={n} value={n}>

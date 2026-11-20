@@ -204,7 +204,7 @@ Managed via SQL migrations in `supabase/migrations/`:
 | `phone` | `text` | Required for new RSVPs (nullable in DDL for historical rows) |
 | `attending` | `text` | `NOT NULL CHECK (attending IN ('yes', 'no'))` |
 | `guests` | `int` | `DEFAULT 0 CHECK (guests >= 0 AND guests <= 4)` (guests > 7 years) |
-| `children_count` | `int` | `NOT NULL DEFAULT 0 CHECK (children_count >= 0)` (children ≤ 7 years) |
+| `children_count` | `int` | `NOT NULL DEFAULT 0 CHECK (children_count >= 0 AND children_count <= 4)` (children ≤ 7 years) |
 | `manage_token` | `uuid` | `NOT NULL DEFAULT gen_random_uuid()` (unique: `uq_rsvps_manage_token`) |
 | `meal`, `dietary`, `song` | `text` | Legacy nullable columns preserved for historical data |
 | `note` | `text` | Nullable |

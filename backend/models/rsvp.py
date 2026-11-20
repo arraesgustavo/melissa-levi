@@ -14,7 +14,7 @@ class RSVPSubmission(BaseModel):
     attending: Literal["yes", "no"]
     guests: int = Field(ge=0, le=4)
     guest_names: list[str] = Field(default_factory=list)
-    children_count: int = Field(default=0, ge=0, le=20)
+    children_count: int = Field(default=0, ge=0, le=4)
     children_names: list[str] = Field(default_factory=list)
     note: str | None = None
 
